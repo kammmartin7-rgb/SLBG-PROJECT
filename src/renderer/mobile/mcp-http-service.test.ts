@@ -39,6 +39,21 @@ describe('mobile MCP HTTP service', () => {
     expect(calls[1]?.[1]?.headers).toMatchObject({ 'Mcp-Session-Id': 'session-1' })
   })
 
+  it('cancels an oversized chunked response before buffering the rest', async () => {
+    const cancel = vi.fn()
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) { controller.enqueue(new Uint8Array(5)) },
+      cancel,
+    })
+    const service = new McpHttpService({
+      endpoint: 'https://example.test/mcp',
+      maxResponseBytes: 8,
+      fetchImpl: async () => new Response(body),
+    })
+    await expect(service.call({})).rejects.toThrow('mcp_response_too_large')
+    expect(cancel).toHaveBeenCalledOnce()
+  })
+
   it('binds PKCE callbacks to one stored state', async () => {
     const values = new Map<string, { verifier: string; redirectUri: string; expiresAt: number }>()
     const store = {
