@@ -27,6 +27,32 @@ app.whenReady().then(() => {
   const root = resolve(app.getAppPath(), 'renderer')
   protocol.handle(scheme, async (request) => {
     const url = new URL(request.url)
+    if (url.host === 'app' && url.pathname.startsWith('/local-ollama/')) {
+      const path = url.pathname.slice('/local-ollama'.length)
+      const chat = path === '/v1/chat/completions' && request.method === 'POST'
+      const models = path === '/v1/models' && request.method === 'GET'
+      if ((!chat && !models) || url.search || (request.headers.has('origin') && request.headers.get('origin') !== origin)) {
+        return new Response(null, { status: 403 })
+      }
+      try {
+        let body
+        if (chat) {
+          if (!request.headers.get('content-type')?.startsWith('application/json')) return new Response(null, { status: 415 })
+          const payload = await request.json()
+          if (payload.tools?.length || payload.functions?.length) return new Response('Local chat accepts text requests.', { status: 400 })
+          body = JSON.stringify(payload)
+        }
+        const upstream = await fetch('http://127.0.0.1:11434' + path, {
+          method: request.method, headers: { 'Content-Type': 'application/json' },
+          body, signal: request.signal, redirect: 'error'
+        })
+        return new Response(upstream.body, { status: upstream.status, headers: {
+          'Content-Type': upstream.headers.get('content-type') || 'application/json'
+        } })
+      } catch {
+        return new Response('Local Ollama service unavailable', { status: 502 })
+      }
+    }
     if (url.host !== 'app' || request.method !== 'GET') return new Response(null, { status: 403 })
     let pathname
     try { pathname = decodeURIComponent(url.pathname) } catch { return new Response(null, { status: 400 }) }
