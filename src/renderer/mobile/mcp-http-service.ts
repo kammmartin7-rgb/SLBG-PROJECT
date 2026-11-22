@@ -117,10 +117,31 @@ function parseSse(text: string): unknown[] {
 
 async function readBoundedResponse(response: Response, maxBytes: number): Promise<string> {
   const declared = Number(response.headers.get('content-length') || 0)
-  if (declared > maxBytes) throw new Error('mcp_response_too_large')
-  const bytes = new Uint8Array(await response.arrayBuffer())
-  if (bytes.byteLength > maxBytes) throw new Error('mcp_response_too_large')
-  return new TextDecoder().decode(bytes)
+  if (declared > maxBytes) {
+    await response.body?.cancel()
+    throw new Error('mcp_response_too_large')
+  }
+  if (!response.body) return ''
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let total = 0
+  const parts: string[] = []
+  try {
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      total += value.byteLength
+      if (total > maxBytes) {
+        await reader.cancel()
+        throw new Error('mcp_response_too_large')
+      }
+      parts.push(decoder.decode(value, { stream: true }))
+    }
+    parts.push(decoder.decode())
+    return parts.join('')
+  } finally {
+    reader.releaseLock()
+  }
 }
 
 /**
@@ -137,7 +158,7 @@ export class McpHttpService {
 
   constructor(options: McpHttpServiceOptions) {
     this.endpoint = assertSafeMcpEndpoint(options.endpoint, options.policy)
-    this.fetchImpl = options.fetchImpl || fetch
+    this.fetchImpl = (options.fetchImpl ?? globalThis.fetch).bind(globalThis)
     this.headers = { ...(options.headers || {}) }
     this.protocolVersion = options.protocolVersion || DEFAULT_PROTOCOL_VERSION
     this.maxResponseBytes = options.maxResponseBytes || DEFAULT_MAX_RESPONSE_BYTES

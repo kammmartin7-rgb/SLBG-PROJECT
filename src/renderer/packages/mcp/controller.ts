@@ -13,6 +13,8 @@ import { mobileMcpController } from '@/mobile/mcp-mobile-controller'
 import { createSafeMcpOAuthFetch } from '@/mobile/mcp-oauth-provider'
 import type { MCPServerConfig, MCPServerStatus } from './types'
 
+import { desktopTransport } from './desktop-transport'
+
 type TransportConfig = MCPServerConfig['transport']
 type MCPClient = Awaited<ReturnType<typeof createMCPClient>>
 
@@ -21,12 +23,14 @@ async function createClient(
   name = 'chatbox-mcp-client',
   authProvider?: OAuthClientProvider
 ): Promise<MCPClient> {
+  const desktop = desktopTransport(transportConfig)
+  if (desktop) return createMCPClient({ name, transport: desktop })
   if (transportConfig.type === 'stdio') {
     // stdio servers need a local process host; this app only speaks HTTP/SSE MCP.
     throw new Error('stdio MCP transports are unavailable on mobile.')
   }
   if (transportConfig.type === 'http') {
-    const safeFetch = Capacitor.isNativePlatform() ? createSafeMcpOAuthFetch() : undefined
+    const safeFetch = createSafeMcpOAuthFetch()
     const createSseClient = async () => {
       const transport = new SSEClientTransport(new URL(transportConfig.url), {
         requestInit: { headers: transportConfig.headers },
@@ -36,8 +40,8 @@ async function createClient(
       return createMCPClient({
         name,
         transport,
-        onUncaughtError(error: unknown) {
-          console.error('mcp:client:onUncaughtError', error)
+        onUncaughtError() {
+          console.error('mcp:client:onUncaughtError')
         },
       })
     }
@@ -51,12 +55,12 @@ async function createClient(
       return await createMCPClient({
         name,
         transport,
-        onUncaughtError(error: unknown) {
-          console.error('mcp:client:onUncaughtError', error)
+        onUncaughtError() {
+          console.error('mcp:client:onUncaughtError')
         },
       })
     } catch (err) {
-      console.error('Streamable HTTP connection failed', err)
+      console.error('Streamable HTTP connection failed')
       // OAuth errors must preserve the original PKCE transaction. Retrying via
       // SSE here would start a second authorization and overwrite its verifier.
       if (authProvider || transportConfig.protocol === 'streamable-http') throw err
@@ -96,7 +100,7 @@ export class MCPServer extends Emittery<{ status: MCPServerStatus }> {
       this.client = await createClient(this.transportConfig, 'yachiyo-mcp-client', this.authProvider)
       this.tools = await this.client.tools()
     } catch (err) {
-      console.error('mcp:client:start', err)
+      console.error('mcp:client:start')
       this.status = { state: 'idle', error: (err as Error).message }
       return
     }

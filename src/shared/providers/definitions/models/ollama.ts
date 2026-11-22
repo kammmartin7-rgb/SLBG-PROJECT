@@ -47,7 +47,11 @@ export default class Ollama extends OpenAICompatible {
   public options: OllamaOptions
 
   constructor(options: Omit<OllamaOptions, 'apiKey' | 'apiHost'>, dependencies: ModelDependencies) {
-    const apiHost = normalizeOpenAIApiHostAndPath({ apiHost: options.ollamaHost }).apiHost
+    const configuredHost = normalizeOpenAIApiHostAndPath({ apiHost: options.ollamaHost }).apiHost
+    const desktopLocal = typeof location !== 'undefined' && location.protocol === 'yachiyo:' &&
+      location.hostname === 'app' && /^http:\/\/(127\.0\.0\.1|localhost):11434(?:\/v1)?$/.test(configuredHost)
+    const apiHost = desktopLocal ? 'yachiyo://app/local-ollama/v1' : configuredHost
+    const useProxy = desktopLocal ? false : options.useProxy
     super(
       {
         apiKey: 'ollama',
@@ -57,17 +61,19 @@ export default class Ollama extends OpenAICompatible {
         topP: options.topP,
         maxOutputTokens: options.maxOutputTokens,
         stream: options.stream,
-        useProxy: options.useProxy,
+        useProxy,
       },
       dependencies
     )
     this.options = {
       ...options,
+      useProxy,
       apiKey: 'ollama',
       apiHost,
     }
   }
   public isSupportToolUse(): boolean {
+    if (this.options.apiHost === 'yachiyo://app/local-ollama/v1') return false
     return helpers.isModelSupportToolUse(this.options.model.modelId) || super.isSupportToolUse()
   }
   public isSupportVision(): boolean {
