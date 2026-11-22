@@ -9,6 +9,20 @@ describe('mobile MCP HTTP service', () => {
     expect(assertSafeMcpEndpoint('https://192.168.1.5/mcp', { allowLan: true }).hostname).toBe('192.168.1.5')
   })
 
+  it('uses the WebView receiver for native fetch', async () => {
+    const original = globalThis.fetch
+    globalThis.fetch = async function (this: unknown) {
+      if (this !== globalThis) throw new TypeError('Illegal invocation')
+      return new Response('{}', { headers: { 'Content-Type': 'application/json' } })
+    }
+    try {
+      const service = new McpHttpService({ endpoint: 'https://mcp.example.test/mcp' })
+      await service.call({ jsonrpc: '2.0', id: 1, method: 'initialize' })
+    } finally {
+      globalThis.fetch = original
+    }
+  })
+
   it('tracks a resumable session and parses bounded SSE responses', async () => {
     const fetchImpl = vi.fn(async () =>
       new Response('data: {"jsonrpc":"2.0","id":1,"result":{"ok":true}}\n\n', {

@@ -137,7 +137,7 @@ export class McpHttpService {
 
   constructor(options: McpHttpServiceOptions) {
     this.endpoint = assertSafeMcpEndpoint(options.endpoint, options.policy)
-    this.fetchImpl = options.fetchImpl || fetch
+    this.fetchImpl = (options.fetchImpl ?? globalThis.fetch).bind(globalThis)
     this.headers = { ...(options.headers || {}) }
     this.protocolVersion = options.protocolVersion || DEFAULT_PROTOCOL_VERSION
     this.maxResponseBytes = options.maxResponseBytes || DEFAULT_MAX_RESPONSE_BYTES
