@@ -51,6 +51,7 @@ export default class Ollama extends OpenAICompatible {
     const desktopLocal = typeof location !== 'undefined' && location.protocol === 'yachiyo:' &&
       location.hostname === 'app' && /^http:\/\/(127\.0\.0\.1|localhost):11434(?:\/v1)?$/.test(configuredHost)
     const apiHost = desktopLocal ? 'yachiyo://app/local-ollama/v1' : configuredHost
+    const useProxy = desktopLocal ? false : options.useProxy
     super(
       {
         apiKey: 'ollama',
@@ -60,12 +61,13 @@ export default class Ollama extends OpenAICompatible {
         topP: options.topP,
         maxOutputTokens: options.maxOutputTokens,
         stream: options.stream,
-        useProxy: options.useProxy,
+        useProxy,
       },
       dependencies
     )
     this.options = {
       ...options,
+      useProxy,
       apiKey: 'ollama',
       apiHost,
     }

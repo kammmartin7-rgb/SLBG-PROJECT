@@ -39,7 +39,11 @@ app.whenReady().then(() => {
         if (chat) {
           if (!request.headers.get('content-type')?.startsWith('application/json')) return new Response(null, { status: 415 })
           const payload = await request.json()
-          if (payload.tools?.length || payload.functions?.length) return new Response('Local chat accepts text requests.', { status: 400 })
+          // The agent may attach default tools to a plain conversation.
+          // This local endpoint supports chat and never dispatches actions.
+          for (const key of ['tools', 'tool_choice', 'parallel_tool_calls', 'functions', 'function_call']) {
+            delete payload[key]
+          }
           body = JSON.stringify(payload)
         }
         const upstream = await fetch('http://127.0.0.1:11434' + path, {

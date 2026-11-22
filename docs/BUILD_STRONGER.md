@@ -62,3 +62,7 @@ Run `node scripts/check-macos-mcp.mjs "/path/to/Yachiyo Claw.app"` to exercise p
 ## Offline math on Android
 
 Run the Alpine sandbox toolchain setup once while online. The installer adds the Alpine py3-sympy and py3-networkx packages and verifies that both libraries import before marking setup complete. Existing Alpine installations pick up the packages on their next toolchain setup. Once installed, operations such as symbolic factorization and shortest-path calculations run offline inside the sandbox.
+
+## Local Ollama chat on Mac
+
+Start Ollama on the same Mac and use its loopback address under Settings → Other APIs → Ollama. Fetch lists the installed models. Add the desired model and select it in the chat composer. The desktop package forwards model discovery and streamed text chat to the local Ollama API. This connection ignores the cloud compatibility proxy and strips tool definitions from text requests. Installing a model and running Ollama are prerequisites.
