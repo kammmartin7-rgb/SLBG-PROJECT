@@ -44,7 +44,7 @@ public final class YachiyoSandboxPlugin extends Plugin {
     private static final int MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
     private static final int MAX_WALK_ENTRIES = 20_000;
     private static final String TOOLCHAIN_PACKAGES =
-        "bash git python3 py3-pip nodejs npm openssh-client curl ca-certificates build-base";
+        "bash git python3 py3-pip py3-sympy py3-networkx nodejs npm openssh-client curl ca-certificates build-base";
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final AtomicBoolean installRunning = new AtomicBoolean(false);
@@ -663,7 +663,7 @@ public final class YachiyoSandboxPlugin extends Plugin {
                 linuxMirrorSetupCommand(useMirror) +
                     "apk update && apk add --no-cache " + TOOLCHAIN_PACKAGES + " && " +
                     developerRegistrySetupCommand(useMirror) +
-                    "python3 --version && node --version && git --version",
+                    "python3 -c 'import sympy, networkx' && node --version && git --version",
                 900_000
             );
             if (packages.exitCode != 0) throw new IOException("sandbox_toolchain_install_failed");
@@ -836,7 +836,7 @@ public final class YachiyoSandboxPlugin extends Plugin {
     }
 
     private File toolchainMarker() {
-        return new File(installer == null ? getContext().getFilesDir() : installer.rootfsDirectory(), ".yachiyo-toolchain-v1");
+        return new File(installer == null ? getContext().getFilesDir() : installer.rootfsDirectory(), ".yachiyo-toolchain-v2");
     }
 
     private File androidToolchainMarker() {

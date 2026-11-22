@@ -58,3 +58,7 @@ bash scripts/package-macos.sh
 Open the resulting application under `dist/desktop`. From Settings → MCP server, add a custom local server with the command `yachiyo-math`, leave arguments and environment empty, then click Test and Save. The packaged stdio service exposes `gcd`. For the remote example choose HTTP and enter `https://learn.microsoft.com/api/mcp` without credentials.
 
 Run `node scripts/check-macos-mcp.mjs "/path/to/Yachiyo Claw.app"` to exercise packaged stdio and independently call Microsoft Learn through the SDK. The packaged Intel application passed discovery of gcd through its settings screen. Microsoft Learn returned search results in the SDK test. The settings screen's remote transport reported a network error in the test environment. This preview has an ad-hoc signature. Distribution with Apple notarization requires Developer ID signing credentials.
+
+## Offline math on Android
+
+Run the Alpine sandbox toolchain setup once while online. The installer adds the Alpine py3-sympy and py3-networkx packages and verifies that both libraries import before marking setup complete. Existing Alpine installations pick up the packages on their next toolchain setup. Once installed, operations such as symbolic factorization and shortest-path calculations run offline inside the sandbox.
