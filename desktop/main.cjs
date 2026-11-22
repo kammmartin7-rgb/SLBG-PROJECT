@@ -44,6 +44,8 @@ app.whenReady().then(() => {
           for (const key of ['tools', 'tool_choice', 'parallel_tool_calls', 'functions', 'function_call']) {
             delete payload[key]
           }
+          const fast = await require('./fast-chat.cjs').fastChat(payload, request.signal)
+          if (fast) return fast
           body = JSON.stringify(payload)
         }
         const upstream = await fetch('http://127.0.0.1:11434' + path, {

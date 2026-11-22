@@ -66,3 +66,5 @@ Run the Alpine sandbox toolchain setup once while online. The installer adds the
 ## Local Ollama chat on Mac
 
 Start Ollama on the same Mac and use its loopback address under Settings → Other APIs → Ollama. Fetch lists the installed models. Add the desired model and select it in the chat composer. The desktop package forwards model discovery and streamed text chat to the local Ollama API. This connection ignores the cloud compatibility proxy and strips tool definitions from text requests. Installing a model and running Ollama are prerequisites.
+
+For qwen-local:latest text chat, the Mac build uses the local native Ollama chat endpoint with thinking disabled and a 15-minute keep-alive. It shortens the exact bundled persona in outgoing system messages, retaining other instructions and conversation history. The saved prompt is unchanged. Streamed content is forwarded to the chat composer as it arrives.
