@@ -44,3 +44,17 @@ The first milestone targets the existing Android client. Keep one endpoint valid
 Prefer Streamable HTTP for new connections. Offer legacy SSE explicitly for compatible servers. Test discovery with a read-only tool before enabling a saved configuration. Apply bounded response sizes and timeouts. Retry discovery after transient disconnects. An interrupted tool call has an unknown outcome, so never replay it automatically.
 
 Android should present remote connections and keep its device permissions behind the existing Tool Broker. Desktop process transport needs a separately packaged host and explicit user approval. Registry results and server-provided tool descriptions remain untrusted. Pairing, registry discovery, resumable jobs and NFC handoff are subsequent milestones. Acceptance starts with passing the OAuth suites and publishing a signed debug APK, followed by an Android device test.
+
+## macOS desktop preview
+
+Build on macOS with Node 22, pnpm and the frozen project dependencies. Install the pinned packager outside the bundle, then build the renderer and native app.
+
+```sh
+npm install --prefix .tools/desktop @electron/packager@20.3.0
+pnpm run build:web
+bash scripts/package-macos.sh
+```
+
+Open the resulting application under `dist/desktop`. From Settings → MCP server, add a custom local server with the command `yachiyo-math`, leave arguments and environment empty, then click Test and Save. The packaged stdio service exposes `gcd`. For the remote example choose HTTP and enter `https://learn.microsoft.com/api/mcp` without credentials.
+
+Run `node scripts/check-macos-mcp.mjs "/path/to/Yachiyo Claw.app"` to exercise packaged stdio and independently call Microsoft Learn through the SDK. The packaged Intel application passed discovery of gcd through its settings screen. Microsoft Learn returned search results in the SDK test. The settings screen's remote transport reported a network error in the test environment. This preview has an ad-hoc signature. Distribution with Apple notarization requires Developer ID signing credentials.
