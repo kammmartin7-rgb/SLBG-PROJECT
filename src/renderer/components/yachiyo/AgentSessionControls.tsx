@@ -364,7 +364,6 @@ export function AgentSessionControls({
               description={String(t('选择不同的 Agent 预设来改变系统提示词和行为'))}
               onChange={(id: string | null) => {
                 if (!id) return;
-                if (!id) return
                 const chars = listCharacterProfiles()
                 const profile = chars.find((c) => c.id === id)
                 if (profile) {
