@@ -309,10 +309,11 @@ export function AgentSessionControls({
                 const seen = new Set<string>()
                 const groups: Record<string, Array<{value: string, label: string, prompt?: string}>> = {
                   'Characters': [],
-                  'Agent Presets': []
+                  'Agent Presets': [],
+                  'Custom Agents': []
                 }
 
-                // Add built-in characters and Tool Agent
+                // Add built-in characters
                 chars.forEach(c => {
                   if (!seen.has(c.id)) {
                     seen.add(c.id)
@@ -334,7 +335,7 @@ export function AgentSessionControls({
                       const label = String(item?.name || item?.title || id)
                       if (id && !seen.has(id)) {
                         seen.add(id)
-                        groups['Agent Presets'].push({ 
+                        groups['Custom Agents'].push({ 
                           value: id, 
                           label,
                           prompt: String(item?.systemPrompt || item?.prompt || '')
@@ -343,6 +344,15 @@ export function AgentSessionControls({
                     })
                   }
                 } catch {}
+
+                // Add Tool Agent
+                if (!seen.has('tool-agent')) {
+                  groups['Agent Presets'].push({
+                    value: 'tool-agent',
+                    label: 'Tool Agent',
+                    prompt: 'You are a helpful assistant that can execute commands and control devices.'
+                  })
+                }
 
                 return Object.entries(groups).flatMap(([group, items]) => 
                   items.length > 0 ? [{ group, label: group, items }] : []
@@ -398,7 +408,7 @@ export function AgentSessionControls({
               label={t('手机控制')}
               description={t('可选。开启后允许 Agent 通过 ADB 或 Fastboot 控制连接的设备。')}
               checked={deviceControlEnabled}
-              disabled={Capacitor.isNativePlatform() && !backendReady}
+              disabled={Capacitor.isNativePlatform() && !backendReady && !deviceControlEnabled}
               onChange={(event) => {
                 const checked = event.currentTarget.checked
                 setDeviceControlEnabled(checked)
