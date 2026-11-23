@@ -4,7 +4,6 @@ import { join } from 'node:path'
 import { parseServersFromJson } from '../components/settings/mcp/utils'
 import React from 'react'
 import { render, fireEvent } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import { AgentSessionControls } from '../components/yachiyo/AgentSessionControls'
 
 describe('Desktop & Cross-Platform Smoke Checks', () => {
