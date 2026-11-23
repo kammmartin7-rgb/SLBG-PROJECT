@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { webkit } from '@playwright/test'
+import { webkit } from 'playwright'
 
 const port = 8089
 const secret = 'verify-runtime-secret'
