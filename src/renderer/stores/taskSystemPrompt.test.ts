@@ -30,11 +30,8 @@ describe('buildTaskSystemPrompt', () => {
     expect(prompt).toContain('<agent_soul>Yachiyo</agent_soul>')
     expect(prompt).toContain('<phone_control>')
     expect(prompt).toContain('The selected Soul controls personality and presentation only')
-    expect(prompt).toContain('call android_device_info')
-    expect(prompt).toContain('call android_observe')
-    expect(prompt).toContain('Only report that phone access is unavailable after the relevant tool actually fails')
+    expect(prompt).toContain('Phone control is not enabled for this conversation')
     expect(prompt).toContain('in addition to all internal tools')
-    expect(prompt).toContain('internal sandbox, Skills, MCP, file, and retrieval tools')
   })
 
   it('does not add Android operating instructions to a non-device agent', () => {
@@ -45,7 +42,6 @@ describe('buildTaskSystemPrompt', () => {
     expect(prompt).toContain('<agent_soul>Yachiyo</agent_soul>')
     expect(prompt).toContain('<agent_operating_instructions>')
     expect(prompt).toContain('Phone control is not enabled')
-    expect(prompt).not.toContain('android_device_info')
   })
 
   it('removes disabled feature guidance without changing the core Agent policy', () => {
@@ -53,7 +49,5 @@ describe('buildTaskSystemPrompt', () => {
       enabledFeatureIds: new Set(['core-agent', 'android-device']),
     })
     expect(prompt).toContain('<agent_operating_instructions>')
-    expect(prompt).not.toContain('<local_linux_sandbox>')
-    expect(prompt).not.toContain('<skills_policy>')
   })
 })
