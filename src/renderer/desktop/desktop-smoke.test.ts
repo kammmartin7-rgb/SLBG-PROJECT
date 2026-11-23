@@ -329,14 +329,14 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     await findByText('当前对话的 Agent 设置')
 
     // Test Agent selector
-    // Remove duplicate test section
+    const selector = getByLabelText('Agent 预设')
     fireEvent.mouseDown(selector)
     await findByText('Custom')
     fireEvent.click(await findByText('Custom'))
 
     // Test control switches
-    // Remove duplicate test section
-    // Remove duplicate test section
+    const phoneSwitch = getByLabelText('手机控制')
+    const desktopSwitch = getByLabelText('PC / Desktop 控制')
     expect((phoneSwitch as HTMLInputElement).checked).toBe(false)
     expect((desktopSwitch as HTMLInputElement).checked).toBe(false)
 
@@ -344,7 +344,7 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     fireEvent.click(desktopSwitch)
 
     // Test save button
-    // Remove duplicate test section
+    const saveButton = getByText('保存设置')
     fireEvent.click(saveButton)
 
     // Verify state was saved
@@ -354,164 +354,5 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       'yachiyo-agent-session-config-v2',
       expect.stringContaining('"deviceControlEnabled":true')
     )
-    // Remove duplicate test section
-      getItem: vi.fn((key: string) => {
-        if (key === 'yachiyo.characters.v1') return JSON.stringify([{
-          id: 'custom-char',
-          name: 'Custom',
-          avatar: '/avatar.png',
-          prompt: 'Custom prompt',
-          live2dModelId: 'default',
-          defaultTtsProvider: 'bing',
-          defaultTtsModel: 'edge-read-aloud'
-        }])
-        if (key === 'yachiyo-agent-presets') return JSON.stringify([{
-          id: 'custom-agent',
-          name: 'Custom Agent',
-          systemPrompt: 'Agent prompt'
-        }])
-        return null
-      }),
-      setItem: vi.fn()
-    }
-    // Remove duplicate test section
-
-    // Mock session config
-    // Remove duplicate test section
-      enabled: true,
-      deviceControlEnabled: false,
-      desktopControlEnabled: false,
-      configured: true,
-      backend: 'accessibility' as const,
-      approvalMode: 'manual' as const,
-      allowDangerousForConversation: false,
-      workingDirectory: ''
-    }
-    // Remove duplicate test section
-
-    // Mock character profiles
-    vi.mock('@/mobile/character-profiles', () => ({
-      DEFAULT_CHARACTER: {
-        id: 'default',
-        name: 'Default',
-        avatar: '/avatar.png',
-        prompt: 'Default prompt',
-        live2dModelId: 'default',
-        defaultTtsProvider: 'bing',
-        defaultTtsModel: 'edge-read-aloud'
-      },
-      listCharacterProfiles: vi.fn(() => [
-        {
-          id: 'default',
-          name: 'Default',
-          avatar: '/avatar.png',
-          prompt: 'Default prompt',
-          live2dModelId: 'default',
-          defaultTtsProvider: 'bing',
-          defaultTtsModel: 'edge-read-aloud'
-        },
-        {
-          id: 'custom-char',
-          name: 'Custom',
-          avatar: '/avatar.png',
-          prompt: 'Custom prompt',
-          live2dModelId: 'default',
-          defaultTtsProvider: 'bing',
-          defaultTtsModel: 'edge-read-aloud'
-        }
-      ]),
-      getSessionCharacter: vi.fn(() => ({
-        id: 'default',
-        name: 'Default',
-        avatar: '/avatar.png',
-        prompt: 'Default prompt',
-        live2dModelId: 'default',
-        defaultTtsProvider: 'bing',
-        defaultTtsModel: 'edge-read-aloud'
-      })),
-      selectSessionCharacter: vi.fn(async () => {}),
-      saveCharacterProfile: vi.fn()
-    }))
-
-    // Mock agent broker
-    vi.mock('@/mobile/agent-broker', () => ({
-      getAgentBackend: vi.fn(() => 'accessibility'),
-      setAgentBackend: vi.fn(),
-      getAgentWorkingDirectory: vi.fn(() => ''),
-      getCachedRootCapability: vi.fn(() => ({ available: false, detail: '' })),
-      getRootCapability: vi.fn()
-    }))
-
-    // Mock device access
-    vi.mock('@/platform/native/yachiyo_device_access', () => ({
-      yachiyoDeviceAccessNative: {
-        getPermissionStatus: vi.fn(() => Promise.resolve({
-          accessibility: true,
-          overlay: true,
-          shizukuGranted: false,
-          shizukuRunning: false
-        })),
-        openPermissionSettings: vi.fn(),
-        requestShizukuPermission: vi.fn()
-      }
-    }))
-
-    // Mock agent runtime settings
-    vi.mock('@/mobile/agent-runtime-settings', () => ({
-      getAgentRuntimeSettings: vi.fn(() => ({ returnToAppOnComplete: false })),
-      saveAgentRuntimeSettings: vi.fn()
-    }))
-
-    // Mock translation
-    vi.mock('react-i18next', () => ({
-      useTranslation: () => ({
-        t: (key: string) => key
-      })
-    }))
-
-    // Render component
-    // Remove duplicate test section
-      React.createElement(AgentSessionControls, {
-        sessionId: "test-session",
-        enabled: true,
-        onToggle: async () => {},
-        showStatus: true
-      })
-    )
-
-    // Test Agent selector
-    const selector = getByLabelText('Agent 预设')
-    fireEvent.click(selector)
-    expect(getByText('Default')).toBeTruthy()
-    expect(getByText('Custom')).toBeTruthy()
-    expect(getByText('Tool Agent')).toBeTruthy()
-    expect(getByText('Custom Agent')).toBeTruthy()
-
-    // Test control switches
-    const phoneSwitch = getByLabelText('手机控制')
-    const desktopSwitch = getByLabelText('PC / Desktop 控制')
-    expect((phoneSwitch as HTMLInputElement).disabled).toBe(false)
-    expect((desktopSwitch as HTMLInputElement).disabled).toBe(false)
-
-    fireEvent.click(phoneSwitch)
-    expect(mockConfig.deviceControlEnabled).toBe(true)
-
-    fireEvent.click(desktopSwitch)
-    expect(mockConfig.desktopControlEnabled).toBe(true)
-
-    // Test save button
-    const saveButton = getByText('保存设置')
-    fireEvent.click(saveButton)
-    expect(mockLocalStorage.setItem).toHaveBeenCalled()
-    expect(mockConfig).toEqual({
-      enabled: true,
-      deviceControlEnabled: true,
-      desktopControlEnabled: true,
-      configured: true,
-      backend: 'accessibility',
-      approvalMode: 'manual',
-      allowDangerousForConversation: false,
-      workingDirectory: ''
-    })
   })
 })
