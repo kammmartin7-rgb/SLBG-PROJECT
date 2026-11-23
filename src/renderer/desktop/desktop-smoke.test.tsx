@@ -57,13 +57,17 @@ vi.mock('@/mobile/character-profiles', () => {
   }
 })
 
-vi.mock('@/mobile/agent-broker', () => ({
-  getAgentBackend: vi.fn(() => 'accessibility'),
-  setAgentBackend: vi.fn(),
-  getAgentWorkingDirectory: vi.fn(() => ''),
-  getCachedRootCapability: vi.fn(() => ({ available: false, detail: '' })),
-  getRootCapability: vi.fn(),
-}))
+vi.mock('@/mobile/agent-broker', async (orig) => {
+  const actual = await orig<typeof import('@/mobile/agent-broker')>()
+  return {
+    ...actual,
+    getAgentBackend: vi.fn(() => 'accessibility'),
+    setAgentBackend: vi.fn(),
+    getAgentWorkingDirectory: vi.fn(() => ''),
+    getCachedRootCapability: vi.fn(() => ({ available: false, detail: '' })),
+    getRootCapability: vi.fn(),
+  }
+})
 
 vi.mock('@/mobile/agent-runtime-settings', () => ({
   getAgentRuntimeSettings: vi.fn(() => ({ returnToAppOnComplete: false, desktopControlEnabled: false })),
