@@ -5,6 +5,22 @@ import { render, fireEvent, screen, waitFor as rtlWaitFor } from '@testing-libra
 import { MantineProvider } from '@mantine/core'
 import { AgentSessionControls } from '../components/yachiyo/AgentSessionControls'
 
+beforeEach(() => {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    }))
+  })
+})
+
 vi.mock('react-i18next', async (orig) => {
   const actual = await orig<typeof import('react-i18next')>()
   return { ...actual, useTranslation: () => ({ t: (k: string) => k }) }
