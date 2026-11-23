@@ -65,17 +65,14 @@ vi.mock('@/mobile/character-profiles', () => {
   }
 })
 
-vi.mock('@/mobile/agent-broker', async (orig) => {
-  const actual = await orig<typeof import('@/mobile/agent-broker')>()
-  return {
-    ...actual,
-    getAgentBackend: vi.fn(() => 'accessibility'),
-    setAgentBackend: vi.fn(),
-    getAgentWorkingDirectory: vi.fn(() => ''),
-    getCachedRootCapability: vi.fn(() => ({ available: false, detail: '' })),
-    getRootCapability: vi.fn(),
-  }
-})
+vi.mock('@/mobile/agent-broker', () => ({
+  ANDROID_AGENT_WORKING_DIRECTORY: '/sdcard/Android/data/yachiyo',
+  getAgentBackend: vi.fn(() => 'accessibility'),
+  setAgentBackend: vi.fn(),
+  getAgentWorkingDirectory: vi.fn(() => ''),
+  getCachedRootCapability: vi.fn(() => ({ available: false, detail: '' })),
+  getRootCapability: vi.fn(),
+}))
 
 vi.mock('@/mobile/agent-runtime-settings', () => ({
   getAgentRuntimeSettings: vi.fn(() => ({ returnToAppOnComplete: false, desktopControlEnabled: false })),
@@ -143,11 +140,12 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     fireEvent.click(saveButton)
 
     // Test agent selection
-    const agentSelect = screen.getByLabelText('Agent 预设')
+    const agentSelect = screen.getByRole('combobox', { name: 'Agent 预设' })
     fireEvent.change(agentSelect, { target: { value: 'tool-agent' } })
     
+    const { selectSessionCharacter } = await import('@/mobile/character-profiles')
     await waitFor(() => {
-      expect(selectSessionCharacter).toHaveBeenCalledWith(
+      expect(vi.mocked(selectSessionCharacter)).toHaveBeenCalledWith(
         'test-session',
         expect.objectContaining({
           id: 'tool-agent',
