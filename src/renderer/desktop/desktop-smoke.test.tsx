@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import React from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, fireEvent, screen, waitFor as rtlWaitFor } from '@testing-library/react'
+import { render, fireEvent, screen, waitFor } from '@testing-library/react'
 import { MantineProvider } from '@mantine/core'
 import { AgentSessionControls } from '../components/yachiyo/AgentSessionControls'
 
@@ -95,7 +95,7 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     vi.clearAllMocks()
   })
 
-  it('allows toggling device controls in desktop mode', async () => {
+  it('verifies agent controls functionality', async () => {
     vi.stubGlobal('localStorage', {
       getItem: vi.fn(() => null),
       setItem: vi.fn(),
@@ -138,7 +138,21 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     const saveButton = screen.getByText('保存设置')
     fireEvent.click(saveButton)
 
-    // Verify save was called
+    // Test agent selection
+    const agentSelect = screen.getByLabelText('Agent 预设')
+    fireEvent.change(agentSelect, { target: { value: 'tool-agent' } })
+    
+    await waitFor(() => {
+      expect(selectSessionCharacter).toHaveBeenCalledWith(
+        'test-session',
+        expect.objectContaining({
+          id: 'tool-agent',
+          name: 'Tool Agent'
+        })
+      )
+    })
+
+    // Verify control toggles and save
     const { saveAgentSessionConfig } = await import('@/mobile/agent-session-config')
     await waitFor(() => {
       expect(saveAgentSessionConfig).toHaveBeenCalledWith(
@@ -149,5 +163,11 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
         })
       )
     })
+
+    // Verify MCP tools are exposed
+    const { getAgentSessionConfig } = await import('@/mobile/agent-session-config')
+    const config = getAgentSessionConfig('test-session')
+    expect(config.deviceControlEnabled).toBe(true)
+    expect(config.desktopControlEnabled).toBe(true)
   })
 })
