@@ -118,12 +118,12 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
 
   it('verifies agent controls functionality', async () => {
     // Setup localStorage with test data
-    const localStorageData = {
+    const localStorageData: Record<string, string> = {
       'yachiyo-agent-presets': JSON.stringify([
         { id: 'tool-agent', name: 'Tool Agent', systemPrompt: 'Test prompt' }
       ])
     };
-    (window.localStorage.getItem as jest.Mock).mockImplementation((key: string) => localStorageData[key] || null);
+    (window.localStorage.getItem as vi.Mock).mockImplementation((key: string) => localStorageData[key] || null);
 
     render(
       <MantineProvider>
