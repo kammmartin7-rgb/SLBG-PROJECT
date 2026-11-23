@@ -174,9 +174,9 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     expect(mcpServer).toContain('ANDROID_HOME')
   })
 
-  it('tests all AgentSessionControls interactive elements', async () => {
+  it('tests AgentSessionControls interactive elements', async () => {
     // Mock localStorage
-    const mockLocalStorage = {
+    const localStorageMock = {
       getItem: vi.fn((key: string) => {
         if (key === 'yachiyo.characters.v1') return JSON.stringify([{
           id: 'custom-char',
@@ -208,10 +208,10 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       }),
       setItem: vi.fn()
     }
-    vi.stubGlobal('localStorage', mockLocalStorage)
+    vi.stubGlobal('localStorage', localStorageMock)
 
     // Mock session config
-    const mockConfig = {
+    const sessionConfigMock = {
       enabled: true,
       deviceControlEnabled: false,
       desktopControlEnabled: false,
@@ -223,13 +223,13 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     }
     vi.mock('@/mobile/agent-session-config', () => ({
       getAgentSessionConfig: vi.fn((sessionId: string) => 
-        sessionId === 'test-session' ? mockConfig : mockConfig
+        sessionId === 'test-session' ? sessionConfigMock : sessionConfigMock
       ),
-      saveAgentSessionConfig: vi.fn((sessionId: string, patch: Partial<typeof mockConfig>) => {
-        Object.assign(mockConfig, patch)
-        return mockConfig
+      saveAgentSessionConfig: vi.fn((sessionId: string, patch: Partial<typeof sessionConfigMock>) => {
+        Object.assign(sessionConfigMock, patch)
+        return sessionConfigMock
       }),
-      defaultConfig: vi.fn(() => mockConfig)
+      defaultConfig: vi.fn(() => sessionConfigMock)
     }))
 
     // Mock character profiles
@@ -265,8 +265,8 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       ]),
       getSessionCharacter: vi.fn((sessionId: string) => 
         sessionId === 'test-session' ? 
-          { ...mock.DEFAULT_CHARACTER, id: 'default' } : 
-          mock.DEFAULT_CHARACTER
+          { ...DEFAULT_CHARACTER, id: 'default' } : 
+          DEFAULT_CHARACTER
       ),
       selectSessionCharacter: vi.fn(async () => {}),
       saveCharacterProfile: vi.fn()
@@ -329,14 +329,14 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     await findByText('当前对话的 Agent 设置')
 
     // Test Agent selector
-    const selector = getByLabelText('Agent 预设')
+    // Remove duplicate test section
     fireEvent.mouseDown(selector)
     await findByText('Custom')
     fireEvent.click(await findByText('Custom'))
 
     // Test control switches
-    const phoneSwitch = getByLabelText('手机控制')
-    const desktopSwitch = getByLabelText('PC / Desktop 控制')
+    // Remove duplicate test section
+    // Remove duplicate test section
     expect((phoneSwitch as HTMLInputElement).checked).toBe(false)
     expect((desktopSwitch as HTMLInputElement).checked).toBe(false)
 
@@ -344,18 +344,17 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     fireEvent.click(desktopSwitch)
 
     // Test save button
-    const saveButton = getByText('保存设置')
+    // Remove duplicate test section
     fireEvent.click(saveButton)
 
     // Verify state was saved
-    expect(mockConfig.deviceControlEnabled).toBe(true)
-    expect(mockConfig.desktopControlEnabled).toBe(true)
-    expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+    expect(sessionConfigMock.deviceControlEnabled).toBe(true)
+    expect(sessionConfigMock.desktopControlEnabled).toBe(true)
+    expect(localStorageMock.setItem).toHaveBeenCalledWith(
       'yachiyo-agent-session-config-v2',
       expect.stringContaining('"deviceControlEnabled":true')
     )
-    // Mock localStorage
-    const mockLocalStorage = {
+    // Remove duplicate test section
       getItem: vi.fn((key: string) => {
         if (key === 'yachiyo.characters.v1') return JSON.stringify([{
           id: 'custom-char',
@@ -375,10 +374,10 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       }),
       setItem: vi.fn()
     }
-    vi.stubGlobal('localStorage', mockLocalStorage)
+    // Remove duplicate test section
 
     // Mock session config
-    const mockConfig = {
+    // Remove duplicate test section
       enabled: true,
       deviceControlEnabled: false,
       desktopControlEnabled: false,
@@ -388,14 +387,7 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       allowDangerousForConversation: false,
       workingDirectory: ''
     }
-    vi.mock('@/mobile/agent-session-config', () => ({
-      getAgentSessionConfig: vi.fn(() => mockConfig),
-      saveAgentSessionConfig: vi.fn((_: string, patch: Partial<typeof mockConfig>) => {
-        Object.assign(mockConfig, patch)
-        return mockConfig
-      }),
-      defaultConfig: vi.fn(() => mockConfig)
-    }))
+    // Remove duplicate test section
 
     // Mock character profiles
     vi.mock('@/mobile/character-profiles', () => ({
@@ -478,7 +470,7 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     }))
 
     // Render component
-    const { getByText, getByLabelText } = render(
+    // Remove duplicate test section
       React.createElement(AgentSessionControls, {
         sessionId: "test-session",
         enabled: true,
