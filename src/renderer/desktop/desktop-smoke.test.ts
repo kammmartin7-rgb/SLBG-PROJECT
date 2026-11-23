@@ -265,8 +265,24 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       ]),
       getSessionCharacter: vi.fn((sessionId: string) => 
         sessionId === 'test-session' ? 
-          { ...DEFAULT_CHARACTER, id: 'default' } : 
-          DEFAULT_CHARACTER
+          { 
+            id: 'default',
+            name: 'Default',
+            avatar: '/avatar.png',
+            prompt: 'Default prompt',
+            live2dModelId: 'default',
+            defaultTtsProvider: 'bing',
+            defaultTtsModel: 'edge-read-aloud'
+          } : 
+          {
+            id: 'default',
+            name: 'Default',
+            avatar: '/avatar.png',
+            prompt: 'Default prompt',
+            live2dModelId: 'default',
+            defaultTtsProvider: 'bing',
+            defaultTtsModel: 'edge-read-aloud'
+          }
       ),
       selectSessionCharacter: vi.fn(async () => {}),
       saveCharacterProfile: vi.fn()
