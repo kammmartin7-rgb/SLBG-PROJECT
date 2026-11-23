@@ -320,11 +320,15 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     }))
 
     // Mock translation
-    vi.mock('react-i18next', () => ({
-      useTranslation: () => ({
-        t: (key: string) => key
-      })
-    }))
+    vi.mock('react-i18next', async (importOriginal) => {
+      const mod = await importOriginal<typeof import('react-i18next')>()
+      return {
+        ...mod,
+        useTranslation: () => ({
+          t: (key: string) => key
+        })
+      }
+    })
 
     // Render component
     const { getByText, getByLabelText, findByText } = render(
