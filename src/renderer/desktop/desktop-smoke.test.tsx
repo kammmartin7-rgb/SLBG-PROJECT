@@ -123,7 +123,7 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
         { id: 'tool-agent', name: 'Tool Agent', systemPrompt: 'Test prompt' }
       ])
     };
-    (window.localStorage.getItem as vi.Mock).mockImplementation((key: string) => localStorageData[key] || null);
+    (window.localStorage.getItem as ReturnType<typeof vi.fn>).mockImplementation((key: string) => localStorageData[key] || null);
 
     render(
       <MantineProvider>
