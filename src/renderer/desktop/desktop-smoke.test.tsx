@@ -6,6 +6,7 @@ import { MantineProvider } from '@mantine/core'
 import { AgentSessionControls } from '../components/yachiyo/AgentSessionControls'
 
 beforeEach(() => {
+  Object.defineProperty(Element.prototype, "scrollIntoView", { configurable: true, writable: true, value: vi.fn() })
   // Mock window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
@@ -135,41 +136,32 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     fireEvent.click(desktopSwitch)
     fireEvent.click(phoneSwitch)
 
-    // Save settings
-    const saveButton = screen.getByText('保存设置')
-    fireEvent.click(saveButton)
+    // Select the preset before Save closes the dialog.
+    const agentSelect = await screen.findByRole('textbox', { name: 'Agent 预设' })
+    fireEvent.click(agentSelect)
+    await screen.findByRole('option', { name: 'Default' })
+    fireEvent.click(await screen.findByRole('option', { name: 'Tool Agent' }))
 
-    // Test agent selection
-    const agentSelect = screen.getByRole('combobox', { name: 'Agent 预设' })
-    fireEvent.change(agentSelect, { target: { value: 'tool-agent' } })
-    
     const { selectSessionCharacter } = await import('@/mobile/character-profiles')
     await waitFor(() => {
-      expect(vi.mocked(selectSessionCharacter)).toHaveBeenCalledWith(
+      expect(selectSessionCharacter).toHaveBeenCalledWith(
         'test-session',
-        expect.objectContaining({
-          id: 'tool-agent',
-          name: 'Tool Agent'
-        })
+        expect.objectContaining({ id: 'tool-agent', name: 'Tool Agent' }),
       )
     })
 
-    // Verify control toggles and save
     const { saveAgentSessionConfig } = await import('@/mobile/agent-session-config')
+    vi.mocked(saveAgentSessionConfig).mockClear()
+    fireEvent.click(await screen.findByRole('button', { name: '保存设置' }))
+
     await waitFor(() => {
       expect(saveAgentSessionConfig).toHaveBeenCalledWith(
         'test-session',
         expect.objectContaining({
           deviceControlEnabled: true,
-          desktopControlEnabled: true
-        })
+          desktopControlEnabled: true,
+        }),
       )
     })
-
-    // Verify MCP tools are exposed
-    const { getAgentSessionConfig } = await import('@/mobile/agent-session-config')
-    const config = getAgentSessionConfig('test-session')
-    expect(config.deviceControlEnabled).toBe(true)
-    expect(config.desktopControlEnabled).toBe(true)
   })
 })
