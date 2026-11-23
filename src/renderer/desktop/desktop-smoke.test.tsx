@@ -6,6 +6,7 @@ import { MantineProvider } from '@mantine/core'
 import { AgentSessionControls } from '../components/yachiyo/AgentSessionControls'
 
 beforeEach(() => {
+  // Mock window.matchMedia
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
     value: vi.fn().mockImplementation((query: string) => ({
@@ -18,6 +19,13 @@ beforeEach(() => {
       removeEventListener: vi.fn(),
       dispatchEvent: vi.fn()
     }))
+  })
+
+  // Mock ResizeObserver
+  vi.stubGlobal('ResizeObserver', class {
+    observe = vi.fn()
+    unobserve = vi.fn() 
+    disconnect = vi.fn()
   })
 })
 
