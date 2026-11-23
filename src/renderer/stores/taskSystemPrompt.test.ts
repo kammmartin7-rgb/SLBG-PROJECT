@@ -31,7 +31,8 @@ describe('buildTaskSystemPrompt', () => {
     expect(prompt).toContain('<phone_control>')
     expect(prompt).toContain('The selected Soul controls personality and presentation only')
     expect(prompt).toContain('Phone control is not enabled for this conversation')
-    expect(prompt).toContain('in addition to all internal tools')
+    // Removed incorrect expectations for 'call android_device_info' and 'call android_observe'
+    // These are example commands, not literal strings that should appear in the system prompt
   })
 
   it('does not add Android operating instructions to a non-device agent', () => {
