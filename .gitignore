@@ -223,3 +223,4 @@ tmp-*.md
 *.gguf
 *.litertlm
 *.task
+.aider*

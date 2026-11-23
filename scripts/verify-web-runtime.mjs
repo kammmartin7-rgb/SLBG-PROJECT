@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process'
 
-const testProcess = spawn('pnpm', ['exec', 'vitest', 'run', 'src/renderer/desktop/desktop-smoke.test.ts'], {
+const testProcess = spawn('pnpm', ['exec', 'vitest', 'run', 'src/renderer/desktop/desktop-smoke.test.tsx'], {
   stdio: 'inherit'
 })
 
