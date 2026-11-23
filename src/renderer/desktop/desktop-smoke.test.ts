@@ -213,15 +213,6 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       backend: 'accessibility' as const,
       approvalMode: 'manual' as const,
       allowDangerousForConversation: false,
-      workingDirectory: '',
-      // Add missing fields from real interface
-      allowDangerousForConversation: false,
-      approvalMode: 'manual',
-      backend: 'accessibility',
-      configured: true,
-      desktopControlEnabled: false,
-      deviceControlEnabled: false,
-      enabled: true,
       workingDirectory: ''
     }
     vi.mock('@/mobile/agent-session-config', () => ({
