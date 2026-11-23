@@ -192,6 +192,185 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
           name: 'Custom Agent',
           systemPrompt: 'Agent prompt'
         }])
+        if (key === 'yachiyo-agent-session-config-v2') return JSON.stringify({
+          'test-session': {
+            enabled: true,
+            deviceControlEnabled: false,
+            desktopControlEnabled: false,
+            configured: true,
+            backend: 'accessibility',
+            approvalMode: 'manual',
+            allowDangerousForConversation: false,
+            workingDirectory: ''
+          }
+        })
+        return null
+      }),
+      setItem: vi.fn()
+    }
+    vi.stubGlobal('localStorage', mockLocalStorage)
+
+    // Mock session config
+    const mockConfig = {
+      enabled: true,
+      deviceControlEnabled: false,
+      desktopControlEnabled: false,
+      configured: true,
+      backend: 'accessibility' as const,
+      approvalMode: 'manual' as const,
+      allowDangerousForConversation: false,
+      workingDirectory: ''
+    }
+    vi.mock('@/mobile/agent-session-config', () => ({
+      getAgentSessionConfig: vi.fn((sessionId: string) => 
+        sessionId === 'test-session' ? mockConfig : mockConfig
+      ),
+      saveAgentSessionConfig: vi.fn((sessionId: string, patch: Partial<typeof mockConfig>) => {
+        Object.assign(mockConfig, patch)
+        return mockConfig
+      }),
+      defaultConfig: vi.fn(() => mockConfig)
+    }))
+
+    // Mock character profiles
+    vi.mock('@/mobile/character-profiles', () => ({
+      DEFAULT_CHARACTER: {
+        id: 'default',
+        name: 'Default',
+        avatar: '/avatar.png',
+        prompt: 'Default prompt',
+        live2dModelId: 'default',
+        defaultTtsProvider: 'bing',
+        defaultTtsModel: 'edge-read-aloud'
+      },
+      listCharacterProfiles: vi.fn(() => [
+        {
+          id: 'default',
+          name: 'Default',
+          avatar: '/avatar.png',
+          prompt: 'Default prompt',
+          live2dModelId: 'default',
+          defaultTtsProvider: 'bing',
+          defaultTtsModel: 'edge-read-aloud'
+        },
+        {
+          id: 'custom-char',
+          name: 'Custom',
+          avatar: '/avatar.png',
+          prompt: 'Custom prompt',
+          live2dModelId: 'default',
+          defaultTtsProvider: 'bing',
+          defaultTtsModel: 'edge-read-aloud'
+        }
+      ]),
+      getSessionCharacter: vi.fn((sessionId: string) => 
+        sessionId === 'test-session' ? 
+          { ...mock.DEFAULT_CHARACTER, id: 'default' } : 
+          mock.DEFAULT_CHARACTER
+      ),
+      selectSessionCharacter: vi.fn(async () => {}),
+      saveCharacterProfile: vi.fn()
+    }))
+
+    // Mock agent broker
+    vi.mock('@/mobile/agent-broker', () => ({
+      getAgentBackend: vi.fn(() => 'accessibility'),
+      setAgentBackend: vi.fn(),
+      getAgentWorkingDirectory: vi.fn(() => ''),
+      getCachedRootCapability: vi.fn(() => ({ available: false, detail: '' })),
+      getRootCapability: vi.fn()
+    }))
+
+    // Mock device access
+    vi.mock('@/platform/native/yachiyo_device_access', () => ({
+      yachiyoDeviceAccessNative: {
+        getPermissionStatus: vi.fn(() => Promise.resolve({
+          accessibility: true,
+          overlay: true,
+          shizukuGranted: false,
+          shizukuRunning: false
+        })),
+        openPermissionSettings: vi.fn(),
+        requestShizukuPermission: vi.fn()
+      }
+    }))
+
+    // Mock agent runtime settings
+    vi.mock('@/mobile/agent-runtime-settings', () => ({
+      getAgentRuntimeSettings: vi.fn(() => ({ 
+        returnToAppOnComplete: false,
+        desktopControlEnabled: false 
+      })),
+      saveAgentRuntimeSettings: vi.fn()
+    }))
+
+    // Mock translation
+    vi.mock('react-i18next', () => ({
+      useTranslation: () => ({
+        t: (key: string) => key
+      })
+    }))
+
+    // Render component
+    const { getByText, getByLabelText, findByText } = render(
+      React.createElement(AgentSessionControls, {
+        sessionId: "test-session",
+        enabled: true,
+        onToggle: async () => {},
+        showStatus: true
+      })
+    )
+
+    // Open settings modal
+    const settingsButton = getByLabelText('Agent 设置')
+    fireEvent.click(settingsButton)
+
+    // Wait for modal to open
+    await findByText('当前对话的 Agent 设置')
+
+    // Test Agent selector
+    const selector = getByLabelText('Agent 预设')
+    fireEvent.mouseDown(selector)
+    await findByText('Custom')
+    fireEvent.click(await findByText('Custom'))
+
+    // Test control switches
+    const phoneSwitch = getByLabelText('手机控制')
+    const desktopSwitch = getByLabelText('PC / Desktop 控制')
+    expect((phoneSwitch as HTMLInputElement).checked).toBe(false)
+    expect((desktopSwitch as HTMLInputElement).checked).toBe(false)
+
+    fireEvent.click(phoneSwitch)
+    fireEvent.click(desktopSwitch)
+
+    // Test save button
+    const saveButton = getByText('保存设置')
+    fireEvent.click(saveButton)
+
+    // Verify state was saved
+    expect(mockConfig.deviceControlEnabled).toBe(true)
+    expect(mockConfig.desktopControlEnabled).toBe(true)
+    expect(mockLocalStorage.setItem).toHaveBeenCalledWith(
+      'yachiyo-agent-session-config-v2',
+      expect.stringContaining('"deviceControlEnabled":true')
+    )
+    // Mock localStorage
+    const mockLocalStorage = {
+      getItem: vi.fn((key: string) => {
+        if (key === 'yachiyo.characters.v1') return JSON.stringify([{
+          id: 'custom-char',
+          name: 'Custom',
+          avatar: '/avatar.png',
+          prompt: 'Custom prompt',
+          live2dModelId: 'default',
+          defaultTtsProvider: 'bing',
+          defaultTtsModel: 'edge-read-aloud'
+        }])
+        if (key === 'yachiyo-agent-presets') return JSON.stringify([{
+          id: 'custom-agent',
+          name: 'Custom Agent',
+          systemPrompt: 'Agent prompt'
+        }])
         return null
       }),
       setItem: vi.fn()

@@ -27,7 +27,7 @@ export interface AgentSessionConfig {
 const defaultConfig = (): AgentSessionConfig => ({
   enabled: false,
   deviceControlEnabled: false,
-  desktopControlEnabled: !Capacitor.isNativePlatform() && getAgentRuntimeSettings().desktopControlEnabled, // Default enabled on desktop if allowed
+  desktopControlEnabled: !Capacitor.isNativePlatform() && getAgentRuntimeSettings().desktopControlEnabled || false, // Default enabled on desktop if allowed
   configured: false,
   backend: getAgentBackend(),
   approvalMode: 'manual',
