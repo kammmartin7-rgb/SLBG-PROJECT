@@ -1,5 +1,5 @@
 import { spawn } from 'node:child_process'
-import { chromium } from 'playwright'
+import { webkit } from 'playwright'
 
 const port = 8089
 const secret = 'verify-runtime-secret'
@@ -22,7 +22,7 @@ const waitReady = async () => {
 
 try {
   await waitReady()
-  const browser = await chromium.launch()
+  const browser = await webkit.launch()
   const page = await browser.newPage()
   const errors = []
   page.on('pageerror', (err) => errors.push(err.stack || err.message))
@@ -33,11 +33,11 @@ try {
   await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(1000)
 
-  const bodyText = await page.locator('body').innerText()
-  if (bodyText.includes('Something went wrong!')) {
-    const showBtn = page.getByText('Show Error')
-    if (await showBtn.isVisible()) await showBtn.click()
-    const fullError = await page.locator('body').innerText()
+  const bodyText = await page.textContent('body')
+  if (bodyText?.includes('Something went wrong!')) {
+    const showBtn = await page.$('text=Show Error')
+    if (showBtn) await showBtn.click()
+    const fullError = await page.textContent('body')
     throw new Error('Runtime React ErrorBoundary triggered:\n' + fullError)
   }
   if (errors.length > 0) {

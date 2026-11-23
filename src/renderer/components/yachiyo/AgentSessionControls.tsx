@@ -317,7 +317,8 @@ export function AgentSessionControls({
                     seen.add(c.id)
                     groups['Characters'].push({
                       value: c.id,
-                      label: c.name
+                      label: c.name,
+                      prompt: c.prompt
                     })
                   }
                 })
