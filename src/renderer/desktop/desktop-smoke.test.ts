@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -106,8 +107,8 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
       join(process.cwd(), 'src/renderer/components/yachiyo/AgentSessionControls.tsx'),
       'utf8'
     )
+    expect(agentControls).toContain('variant="default"')
     expect(agentControls).toContain('variant="filled"')
-    expect(agentControls).toContain('color="blue"')
     expect(agentControls).toContain('Agent 预设')
     expect(agentControls).toContain('IconShieldLock')
   })
