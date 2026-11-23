@@ -102,22 +102,39 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     const settingsButton = screen.getByLabelText('Agent 设置')
     fireEvent.click(settingsButton)
 
-    const desktopSwitch = screen.getByRole('switch', { name: 'PC / Desktop 控制' })
-    const phoneSwitch = screen.getByRole('switch', { name: '手机控制' })
-    expect((desktopSwitch as HTMLInputElement).disabled).toBe(false)
-    expect((phoneSwitch as HTMLInputElement).disabled).toBe(false)
+    // Wait for modal content to load
+    await screen.findByText('手机控制')
 
+    // Get switches via their labels
+    const getSwitch = (text: string) => {
+      const label = screen.getByText(text).closest('label')
+      return (label?.querySelector('input') || screen.getByLabelText(text)) as HTMLInputElement
+    }
+
+    const desktopSwitch = getSwitch('PC / Desktop 控制')
+    const phoneSwitch = getSwitch('手机控制')
+
+    // Verify switches are enabled
+    expect(desktopSwitch.disabled).toBe(false)
+    expect(phoneSwitch.disabled).toBe(false)
+
+    // Toggle switches
     fireEvent.click(desktopSwitch)
     fireEvent.click(phoneSwitch)
 
+    // Save settings
     const saveButton = screen.getByText('保存设置')
     fireEvent.click(saveButton)
 
+    // Verify save was called
     const { saveAgentSessionConfig } = await import('@/mobile/agent-session-config')
-    await rtlWaitFor(() => {
-      expect(vi.mocked(saveAgentSessionConfig)).toHaveBeenCalledWith(
+    await waitFor(() => {
+      expect(saveAgentSessionConfig).toHaveBeenCalledWith(
         'test-session',
-        expect.objectContaining({ deviceControlEnabled: true, desktopControlEnabled: true })
+        expect.objectContaining({
+          deviceControlEnabled: true,
+          desktopControlEnabled: true
+        })
       )
     })
   })
