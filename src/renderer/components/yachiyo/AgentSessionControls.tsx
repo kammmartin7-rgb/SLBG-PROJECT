@@ -398,8 +398,15 @@ export function AgentSessionControls({
               label={t('手机控制')}
               description={t('可选。开启后允许 Agent 通过 ADB 或 Fastboot 控制连接的设备。')}
               checked={deviceControlEnabled}
-              disabled={Capacitor.isNativePlatform() ? !backendReady : false}
-              onChange={(event) => setDeviceControlEnabled(event.currentTarget.checked)}
+              disabled={Capacitor.isNativePlatform() && !backendReady}
+              onChange={(event) => {
+                const checked = event.currentTarget.checked
+                setDeviceControlEnabled(checked)
+                setConfig(saveAgentSessionConfig(sessionId, {
+                  ...config,
+                  deviceControlEnabled: checked,
+                }))
+              }}
             />
             {deviceControlEnabled && !Capacitor.isNativePlatform() && (
               <Alert color="blue" title={t('桌面模式')}>
