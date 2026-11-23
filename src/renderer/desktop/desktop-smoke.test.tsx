@@ -97,7 +97,11 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
 
   it('verifies agent controls functionality', async () => {
     vi.stubGlobal('localStorage', {
-      getItem: vi.fn(() => null),
+      getItem: vi.fn((key) => 
+        key === 'yachiyo-agent-presets' 
+          ? JSON.stringify([{ id: 'tool-agent', name: 'Tool Agent', systemPrompt: 'Test prompt' }]) 
+          : null
+      ),
       setItem: vi.fn(),
       removeItem: vi.fn(),
       clear: vi.fn(),
