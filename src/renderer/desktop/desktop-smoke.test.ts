@@ -95,11 +95,11 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
 
     render(
       <MantineProvider>
-        <AgentSessionControls
+        <AgentSessionControls 
           sessionId="test-session"
-          enabled
+          enabled={true}
           onToggle={async () => {}}
-          showStatus
+          showStatus={true}
         />
       </MantineProvider>
     )
@@ -111,8 +111,8 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
     // Verify both control switches are enabled
     const desktopSwitch = screen.getByRole('switch', { name: 'PC / Desktop 控制' })
     const phoneSwitch = screen.getByRole('switch', { name: '手机控制' })
-    expect((desktopSwitch as HTMLInputElement).disabled).toBe(false)
-    expect((phoneSwitch as HTMLInputElement).disabled).toBe(false)
+    expect(desktopSwitch).not.toBeDisabled()
+    expect(phoneSwitch).not.toBeDisabled()
 
     // Toggle both controls on
     fireEvent.click(desktopSwitch)
@@ -124,7 +124,6 @@ describe('Desktop & Cross-Platform Smoke Checks', () => {
 
     // Verify save was called with expected values
     await rtlWaitFor(() => {
-      const { saveAgentSessionConfig } = await import('@/mobile/agent-session-config')
       expect(vi.mocked(saveAgentSessionConfig)).toHaveBeenCalledWith(
         'test-session',
         expect.objectContaining({ 
