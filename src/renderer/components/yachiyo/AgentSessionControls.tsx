@@ -345,7 +345,7 @@ export function AgentSessionControls({
                 } catch {}
 
                 return Object.entries(groups).flatMap(([group, items]) => 
-                  items.map(item => ({ ...item, group }))
+                  items.length > 0 ? [{ label: group, items }] : []
                 )
               })()}
               searchable
