@@ -25,31 +25,13 @@ if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.subtle) {
 }
 
 if (typeof globalThis.crypto.getRandomValues !== 'function') {
-  globalThis.crypto.getRandomValues = webcrypto.getRandomValues.bind(webcrypto);
+  (globalThis.crypto as any).getRandomValues = (webcrypto as any).getRandomValues.bind(webcrypto);
 }
 
 
 
 // Mock crypto.subtle for testing
-const mockCryptoSubtle = {
-  digest: vi.fn(async (algorithm: string, data: ArrayBuffer) => {
-    // Return a consistent hash for testing
-    const hashBuffer = new ArrayBuffer(32);
-    const hashArray = new Uint8Array(hashBuffer);
-    // Fill with consistent values for deterministic testing
-    for (let i = 0; i < 32; i++) {
-      hashArray[i] = i;
-    }
-    return hashBuffer;
-  })
-};
 
-Object.defineProperty(globalThis, 'crypto', {
-  value: {
-    subtle: mockCryptoSubtle
-  },
-  writable: true
-});
 
 const text = (value: string) => new TextEncoder().encode(value)
 
@@ -500,8 +482,7 @@ describe('PluginInstaller', () => {
     await expect(installer.install({ 
       packageBytes: bytes, 
       source: 'marketplace',
-      signatureVerified: false 
-    })).rejects.toMatchObject({
+          })).rejects.toMatchObject({
       code: 'signature',
     })
   })

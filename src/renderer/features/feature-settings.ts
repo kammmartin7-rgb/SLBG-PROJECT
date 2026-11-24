@@ -35,7 +35,7 @@ export function readFeatureSettings<T>(
   return parsed.success ? parsed.data : spec.defaults
 }
 
-export async function writeFeatureSettings<T>(spec: FeatureSettingsSpec<T>, value: T): Promise<void {
+export async function writeFeatureSettings<T>(spec: FeatureSettingsSpec<T>, value: T): Promise<void> {
   const parsed = spec.schema.parse(value)
   const current = settingsStore.getState().featureSettings ?? {}
   await persistSettingsPatch({
