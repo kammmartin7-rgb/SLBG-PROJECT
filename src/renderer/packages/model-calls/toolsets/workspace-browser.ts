@@ -20,7 +20,12 @@ It is not a Playwright Chromium binary. Navigation and state-changing actions re
 `
 
 function unavailable(capability: string) {
-  return { success: false, error: `${capability}_unavailable` }
+  const platformType = platform.type || 'unknown'
+  const isDesktop = platformType === 'web'
+  const reason = isDesktop
+    ? `${capability}_unavailable: controlled browser is Android WebView only (current platform: desktop/web). Use a regular chat or Android build for browser tools.`
+    : `${capability}_unavailable: capability not implemented on platform '${platformType}'`
+  return { success: false, error: reason, platform: platformType }
 }
 
 export const workspaceBrowserToolSet = {
