@@ -14,6 +14,42 @@ import {
   pluginInstallDir,
 } from './installer'
 import { unpackPluginArchive } from './unpack'
+import { webcrypto } from 'node:crypto';
+
+if (typeof globalThis.crypto === 'undefined' || !globalThis.crypto.subtle) {
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    writable: true,
+    configurable: true,
+  });
+}
+
+if (typeof globalThis.crypto.getRandomValues !== 'function') {
+  globalThis.crypto.getRandomValues = webcrypto.getRandomValues.bind(webcrypto);
+}
+
+
+
+// Mock crypto.subtle for testing
+const mockCryptoSubtle = {
+  digest: vi.fn(async (algorithm: string, data: ArrayBuffer) => {
+    // Return a consistent hash for testing
+    const hashBuffer = new ArrayBuffer(32);
+    const hashArray = new Uint8Array(hashBuffer);
+    // Fill with consistent values for deterministic testing
+    for (let i = 0; i < 32; i++) {
+      hashArray[i] = i;
+    }
+    return hashBuffer;
+  })
+};
+
+Object.defineProperty(globalThis, 'crypto', {
+  value: {
+    subtle: mockCryptoSubtle
+  },
+  writable: true
+});
 
 const text = (value: string) => new TextEncoder().encode(value)
 
@@ -37,8 +73,8 @@ async function buildZip(
   }
   const zip = new JSZip()
   zip.file('yachiyo-plugin.json', JSON.stringify(manifest))
-  zip.file('main.js', entryBytes)
-  for (const [path, bytes] of Object.entries(over.extraFiles ?? {})) zip.file(path, bytes)
+  zip.file('main.js', new TextDecoder().decode(entryBytes))
+  for (const [path, bytes] of Object.entries(over.extraFiles ?? {})) zip.file(path, new TextDecoder().decode(bytes))
   return { bytes: await zip.generateAsync({ type: 'uint8array' }), manifest }
 }
 
@@ -250,7 +286,7 @@ describe('PluginInstaller', () => {
     ).toThrow('plugin_record_path_invalid')
     expect(() => parseInstalledPluginRecord(record, 'other')).toThrow('plugin_record_identity_mismatch')
     expect(() =>
-      parseInstalledPluginRecord({ ...record, updateSource: { kind: 'url', url: 'http://example.com/demo.zip' } })
+      parseInstalledPluginRecord({ ...record, updateSource: { kind: 'url', url: 'http://example.com/demo.zip' } }, 'demo')
     ).toThrow('plugin_update_source_invalid')
   })
 
@@ -461,7 +497,11 @@ describe('PluginInstaller', () => {
   it('marketplace requires a signature even at install time', async () => {
     const { installer } = makeInstaller()
     const { bytes } = await buildZip()
-    await expect(installer.install({ packageBytes: bytes, source: 'marketplace' })).rejects.toMatchObject({
+    await expect(installer.install({ 
+      packageBytes: bytes, 
+      source: 'marketplace',
+      signatureVerified: false 
+    })).rejects.toMatchObject({
       code: 'signature',
     })
   })
