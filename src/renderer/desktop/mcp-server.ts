@@ -169,7 +169,7 @@ export function createDesktopMcpServer(
             const config = getAgentSessionConfig(req.headers['mcp-session-id']?.toString())
             const tools = []
             
-            if (config.deviceControlEnabled) {
+            if (config.deviceControlEnabled || config.desktopControlEnabled) {
               tools.push(
                 'adb_devices',
                 'adb_screenshot',
