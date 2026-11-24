@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
     },
     include: ['src/**/*.{test,spec}.{ts,tsx}', 'test/integration/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['node_modules', 'dist', 'test/integration/model-provider'],
-    setupFiles: [],
+    setupFiles: ['./vitest.setup.ts'],
     testTimeout: 10000,
     hookTimeout: 10000,
     // Suppress console output in tests
