@@ -338,7 +338,7 @@ const skillsFactory: FeatureToolsetFactory = async (context) => {
 // Registration order reproduces buildToolsForSession's instruction concatenation order. mcp contributes
 // no instructions, so it goes first as the tool base.
 const interAgentFactory: FeatureToolsetFactory = async (context) => {
-  if (!context.model.isSupportToolUse()) return null
+  if (!options(context, 'core-agent')?.agentMode || !context.model.isSupportToolUse()) return null
   const sessionId = context.approvalSessionId || context.agentRunId
   const set = createInterAgentToolSet(sessionId)
   return { instructions: set.description, tools: set.tools }
