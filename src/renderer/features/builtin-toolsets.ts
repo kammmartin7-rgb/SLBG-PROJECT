@@ -14,6 +14,7 @@ import { getToolSet as getSessionAttachmentRagToolSet } from '@/packages/model-c
 import { getToolSetDescription, parseLinkTool, webSearchTool } from '@/packages/model-calls/toolsets/web-search'
 import workspaceBrowserToolSet from '@/packages/model-calls/toolsets/workspace-browser'
 import { createWorkspaceAgentToolSet } from '@/packages/model-calls/toolsets/workspace-agent'
+import { createInterAgentToolSet } from '@/packages/model-calls/toolsets/inter-agent'
 import { createCodingToolSet } from '@/packages/model-calls/toolsets/coding'
 import { codingProjectStorage } from '@/storage/CodingProjectStorage'
 import { PROVIDERS_WITH_PARSE_LINK } from '@/packages/web-search'
@@ -336,6 +337,12 @@ const skillsFactory: FeatureToolsetFactory = async (context) => {
 
 // Registration order reproduces buildToolsForSession's instruction concatenation order. mcp contributes
 // no instructions, so it goes first as the tool base.
+const interAgentFactory: FeatureToolsetFactory = async (context) => {
+  if (!context.model.isSupportToolUse()) return null
+  const sessionId = context.approvalSessionId || context.agentRunId
+  const set = createInterAgentToolSet(sessionId)
+  return { instructions: set.description, tools: set.tools }
+}
 const BUILTIN_TOOLSETS: Array<[string, FeatureToolsetFactory]> = [
   ['core-agent', coreAgentFactory],
   ['mcp', mcpFactory],
@@ -350,6 +357,7 @@ const BUILTIN_TOOLSETS: Array<[string, FeatureToolsetFactory]> = [
   ['long-term-memory', longTermMemoryFactory],
   ['camera', cameraFactory],
   ['skills', skillsFactory],
+  ['inter-agent', interAgentFactory],
 ]
 
 export function registerBuiltinToolsets(): void {
