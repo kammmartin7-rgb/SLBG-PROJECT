@@ -1,29 +1,14 @@
-import path from 'node:path'
-import { loadEnv } from 'vite'
 import { defineConfig } from 'vitest/config'
+import path from 'path'
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   test: {
+    environment: 'jsdom',
     globals: true,
-    environment: 'node',
-    env: {
-      ...loadEnv(mode, process.cwd(), ''),
-      NODE_ENV: 'test',
-    },
-    include: ['src/**/*.{test,spec}.{ts,tsx}', 'test/integration/**/*.{test,spec}.{ts,tsx}'],
-    exclude: ['node_modules', 'dist', 'test/integration/model-provider'],
-    setupFiles: [],
-    testTimeout: 10000,
-    hookTimeout: 10000,
-    // Suppress console output in tests
-    silent: true,
-    logHeapUsage: false,
-  },
-  resolve: {
+    setupFiles: ['./vitest.setup.mts'],
     alias: {
       '@': path.resolve(__dirname, './src/renderer'),
-      src: path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, 'src/shared'),
+      '@shared': path.resolve(__dirname, './src/shared'),
     },
   },
-}))
+})
