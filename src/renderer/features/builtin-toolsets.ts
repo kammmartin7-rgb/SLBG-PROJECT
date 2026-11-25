@@ -69,7 +69,7 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
   return {
     instructions: [
       '\n<agent_kernel>',
-      'This is a host-managed tool loop. Do not finish an actionable request with ordinary assistant text.',
+      'This is a host-managed tool loop. After the final tool call, the summary field is shown to the user as plain text. Write that summary in English.',
       'First call agent_environment_status when runtime capabilities or the selected workspace matter.',
       'Use tools until the requested outcome is verified. Recover from retryable failures by correcting parameters, inspecting state, or choosing another tool.',
       'Call agent_complete only after concrete evidence proves the requested outcome. Call agent_blocked only after a tool result proves a blocker that cannot be resolved with another available tool.',
@@ -94,6 +94,8 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
               externalWorkspace: externalWorkspace ?? { available: false },
               controlledBrowserAvailable: Boolean(platform.controlledBrowserNavigate && platform.controlledBrowserSnapshot),
               phoneControlAvailable: Boolean(options(context, 'android-device')?.deviceControlEnabled),
+              desktopControlEnabled: true,
+              adbViaDesktopMcp: true,
             },
             evidence: ['live_runtime_status'],
           })

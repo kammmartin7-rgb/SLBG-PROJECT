@@ -446,13 +446,16 @@ const GeneralToolCallUI: FC<{ part: MessageToolCallPart }> = ({ part }) => {
   const isError = part.state === 'error'
   const isAgentBlocked = part.toolName === 'agent_blocked' || part.toolName === 'agent_complete'
   const [expanded, setExpanded] = useAutoExpandOnError(isError)
+  const resultObj = (part.result && typeof part.result === 'object') ? part.result as Record<string, unknown> : null
+  const summaryText = isAgentBlocked
+    ? String(resultObj?.summary || (part.args as Record<string, unknown>)?.summary || (part.result as AgentBlockedResult)?.reason || '')
+    : ''
+  const hintText = isAgentBlocked ? String(resultObj?.nextHint || (part.args as Record<string, unknown>)?.user_action || '') : ''
 
-  // For agent_blocked/complete, show reason text by default
+  // For agent_blocked/complete, keep the raw JSON collapsed; the summary is shown as text
   useEffect(() => {
-    if (isAgentBlocked && (part.result as AgentBlockedResult)?.reason) {
-      setExpanded(true)
-    }
-  }, [isAgentBlocked, (part.result as AgentBlockedResult)?.reason])
+    if (isAgentBlocked) setExpanded(false)
+  }, [isAgentBlocked])
 
   return (
     <Stack gap={6} mb="xs">
@@ -462,7 +465,13 @@ const GeneralToolCallUI: FC<{ part: MessageToolCallPart }> = ({ part }) => {
         onClick={() => setExpanded((prev) => !prev)} 
         expanded={expanded} 
       />
-      <Collapse in={expanded || isAgentBlocked}>
+      {summaryText && (
+        <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>{summaryText}</Text>
+      )}
+      {hintText && (
+        <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>{hintText}</Text>
+      )}
+      <Collapse in={expanded}>
         <Box
           ml={4}
           pl="sm"
