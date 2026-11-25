@@ -29,6 +29,8 @@ import { getToolName } from '@/packages/tools'
 import { getRegisteredToolDisplay } from '@/features/toolset-registry'
 import type { SearchResultItem } from '@/packages/web-search'
 
+import { AgentOutcome } from './AgentOutcome'
+
 // ─── Tool Error Result ──────────────────────────────────────────────
 
 function extractToolError(part: MessageToolCallPart): { errorCode?: number; errorText?: string } {
@@ -493,7 +495,7 @@ export const ToolCallPartUI: FC<{ part: MessageToolCallPart }> = ({ part }) => {
   if (part.toolName === 'parse_link') {
     return <ParseLinkUI part={part} />
   }
-  return <GeneralToolCallUI part={part} />
+  return <><AgentOutcome part={part} /><GeneralToolCallUI part={part} /></>
 }
 
 // ─── Reasoning / Thinking (Minimal Inline) ──────────────────────────

@@ -4,7 +4,7 @@ cd "$(dirname "$0")/.."
 test -f dist/renderer/index.html || { echo 'Run pnpm build:web first.' >&2; exit 1; }
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
-cp desktop/package.json desktop/main.cjs desktop/preload.cjs LICENSE THIRD_PARTY_NOTICES.md "$stage/"
+cp desktop/package.json desktop/main.cjs desktop/preload.cjs desktop/device-tools.cjs LICENSE THIRD_PARTY_NOTICES.md "$stage/"
 node_modules/.bin/esbuild desktop/math.mjs --bundle --platform=node --format=cjs --outfile="$stage/math.cjs"
 node_modules/.bin/esbuild desktop/connections.cjs --bundle --platform=node --external:electron --outfile="$stage/connections.cjs"
 node_modules/.bin/esbuild desktop/fast-chat.cjs --bundle --platform=node --outfile="$stage/fast-chat.cjs"

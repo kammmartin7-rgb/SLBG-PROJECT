@@ -34,6 +34,7 @@ const BUILTIN_PROMPT_BLOCKS: readonly PromptBlock[] = [
     blockName: 'local_linux_sandbox',
     order: 200,
     render: (context) => {
+      if (context.platformType === 'desktop') return null
       const workingDirectory = String(option(context, 'sandbox', 'workingDirectory') ?? '.')
       return [
         '<local_linux_sandbox>',
@@ -76,6 +77,7 @@ const BUILTIN_PROMPT_BLOCKS: readonly PromptBlock[] = [
     blockName: 'phone_control',
     order: 400,
     render: (context) => {
+      if (context.platformType === 'desktop') return 'For USB phone requests, call adb_devices if available, then use the selected serial. If it is absent from the tool list, enable PC / USB phone control for this conversation.'
       if (!option(context, 'android-device', 'deviceAgent')) return null
       return [
         '<phone_control>',
@@ -93,7 +95,7 @@ const BUILTIN_PROMPT_BLOCKS: readonly PromptBlock[] = [
         '</phone_control>',
       ].join('\n')
     },
-    renderDisabled: () =>
+    renderDisabled: (context) => context.platformType === 'desktop' ? 'For USB phone tasks, check for adb_devices in the current tool list.' :
       [
         '<phone_control>',
         'Phone control is not enabled for this conversation. Do not claim that internal Agent tools are unavailable.',

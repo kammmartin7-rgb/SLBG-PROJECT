@@ -182,6 +182,15 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>((props, ref) =>
   const messageListRef = useRef<HTMLDivElement>(null)
   const androidHeaderClearanceRef = useRef(0)
   const bottomScrollFrameRef = useRef<number>()
+  const [selecting, setSelecting] = useState(false)
+  useEffect(() => {
+    const update = () => {
+      const selection = document.getSelection()
+      setSelecting(Boolean(selection && !selection.isCollapsed && messageListRef.current?.contains(selection.anchorNode)))
+    }
+    document.addEventListener('selectionchange', update)
+    return () => document.removeEventListener('selectionchange', update)
+  }, [])
   const [messageViewportHeight, setMessageViewportHeight] = useState(0)
   const [isNewMessage, setIsNewMessage] = useState(false)
 
@@ -498,7 +507,8 @@ const MessageList = forwardRef<MessageListRef, MessageListProps>((props, ref) =>
             className={platformType === 'win32' ? 'scrollbar-custom' : ''}
             data={renderItems}
             ref={virtuoso}
-            followOutput={inAndroidAppShell ? 'auto' : 'smooth'}
+            followOutput={selecting ? false : inAndroidAppShell ? 'auto' : 'smooth'}
+            minOverscanItemCount={selecting ? renderItems.length : 0}
             {...(inAndroidAppShell ? { components: androidMessageListComponents } : {})}
             {...(sessionScrollPositionCache.has(currentSession.id)
               ? {

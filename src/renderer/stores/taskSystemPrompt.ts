@@ -3,6 +3,7 @@ import { registerBuiltinPromptBlocks } from '@/features/builtin-prompt-blocks'
 import { renderPromptBlocks } from '@/features/prompt-registry'
 
 export interface TaskSystemPromptOptions {
+  desktopHost?: boolean
   agentIdentity?: string
   deviceAgent?: boolean
   enabledFeatureIds?: ReadonlySet<string>
@@ -13,7 +14,7 @@ export function buildTaskSystemPrompt(workingDirectory: string, options: TaskSys
   const featurePrompt = renderPromptBlocks('agent-system', {
     model: {} as ModelInterface,
     messages: [],
-    platformType: 'mobile',
+    platformType: options.desktopHost ? 'desktop' : 'mobile',
     enabledFeatureIds: options.enabledFeatureIds,
     featureOptions: {
       sandbox: { workingDirectory },

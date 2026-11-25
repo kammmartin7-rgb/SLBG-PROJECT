@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Center, Code, Collapse, Flex, Loader, ScrollArea, Stack, Text } from '@mantine/core'
+import { ActionIcon, Box, Button, Center, Code, Collapse, Flex, Loader, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { TASK_DEFAULT_DIRECTORY } from '@shared/constants/task'
 import type { Message } from '@shared/types'
 import { formatNumber } from '@shared/utils'
@@ -33,7 +33,7 @@ import Markdown from '@/components/Markdown'
 import DirectoryMenu from '@/components/task/DirectoryMenu'
 import { useInAndroidAppShell } from '@/components/yachiyo/AndroidAppShellContext'
 import { YachiyoChatLanding } from '@/components/yachiyo/YachiyoChatLanding'
-import { getAgentSessionConfig } from '@/mobile/agent-session-config'
+import { getAgentSessionConfig, saveAgentSessionConfig } from '@/mobile/agent-session-config'
 import useNeedRoomForWinControls from '@/hooks/useNeedRoomForWinControls'
 import { useProviders } from '@/hooks/useProviders'
 import { useIsSmallScreen } from '@/hooks/useScreenChange'
@@ -98,6 +98,8 @@ function TaskSessionRoute() {
 
   return <TaskChat session={session} />
 }
+
+import { AgentOutcome } from '@/components/message-parts/AgentOutcome'
 
 interface ToolCallInfo {
   type: 'tool-call'
@@ -204,6 +206,7 @@ function ToolCallItem({ tc }: { tc: ToolCallInfo }) {
 
   return (
     <Box className="border-l-2 border-[var(--chatbox-border-primary)] pl-2 py-0.5">
+      <AgentOutcome part={tc} />
       <Flex
         align="center"
         gap={4}
@@ -360,6 +363,8 @@ function TaskMessageBubble({ message, sessionName }: { message: Message; session
 function TaskChat({ session }: { session: NonNullable<ReturnType<typeof useTaskSessionRecord>['data']> }) {
   const modelRegistryVersion = useModelRegistryVersion()
   const inAndroidAppShell = useInAndroidAppShell()
+  const [pcControl, setPcControl] = useState(() => getAgentSessionConfig(session.id).deviceControlEnabled)
+  useEffect(() => setPcControl(getAgentSessionConfig(session.id).deviceControlEnabled), [session.id])
   const mobileAgentConfig = getAgentSessionConfig(session.id)
   const { session: linkedChat } = useSession(session.linkedSessionId || null)
 
@@ -496,7 +501,8 @@ function TaskChat({ session }: { session: NonNullable<ReturnType<typeof useTaskS
         const viewport = scrollAreaRef.current.querySelector(
           '[data-radix-scroll-area-viewport], .mantine-ScrollArea-viewport'
         )
-        if (viewport) {
+        const selection = document.getSelection()
+        if (viewport && !(selection && !selection.isCollapsed && viewport.contains(selection.anchorNode))) {
           viewport.scrollTop = viewport.scrollHeight
         }
       }
@@ -575,6 +581,19 @@ function TaskChat({ session }: { session: NonNullable<ReturnType<typeof useTaskS
               {session.name}
             </Text>
           </Flex>
+          {'yachiyoDesktop' in window && <>
+            <Switch className="controls" label="PC / USB phone control" checked={pcControl}
+              onChange={event => {
+                const enabled = event.currentTarget.checked
+                saveAgentSessionConfig(session.id, { deviceControlEnabled: enabled })
+                if (session.linkedSessionId) saveAgentSessionConfig(session.linkedSessionId, { deviceControlEnabled: enabled })
+                setPcControl(enabled)
+              }} />
+            <Button className="controls" variant="subtle" disabled={generating}
+              onClick={async () => (await import('@/mobile/conversation-bridge')).openTaskSessionAsChat(session.id)}>
+              Back to chat
+            </Button>
+          </>}
           <WindowControls className="-mr-3 ml-2" />
         </Flex>
       )}

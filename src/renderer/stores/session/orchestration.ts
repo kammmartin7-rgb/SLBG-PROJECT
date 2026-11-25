@@ -1,3 +1,5 @@
+import { LEGACY_YACHIYO_SOUL, YACHIYO_SOUL } from '@shared/personas/yachiyo'
+import { getAgentSessionConfig } from '@/mobile/agent-session-config'
 import { buildContext } from '@shared/context'
 import { ChatboxAIAPIError, OCRError } from '@shared/models/errors'
 import type { ChatStreamOptions, ModelStreamPart } from '@shared/models/types'
@@ -146,6 +148,11 @@ export async function orchestrateGeneration(
       maxContextMessageCount: settings.maxContextMessageCount,
     })
 
+    promptMsgs = promptMsgs.map(message => message.role !== 'system' ? message : {
+      ...message, contentParts: message.contentParts.map(part =>
+        part.type === 'text' && part.text === LEGACY_YACHIYO_SOUL ? { ...part, text: YACHIYO_SOUL } : part),
+    })
+
     const infoParts: MessageContentParts = []
 
     if (
@@ -182,7 +189,7 @@ export async function orchestrateGeneration(
       messages: promptMsgs,
       agentSessionId: sessionId,
       featureOptions: {
-        'core-agent': { agentMode: false },
+        'core-agent': { agentMode: getAgentSessionConfig(sessionId).enabled },
         'web-search': { webBrowsing },
         'knowledge-base': { knowledgeBase },
         sandbox: { sandboxEnabled: false },
@@ -208,6 +215,7 @@ export async function orchestrateGeneration(
       }
     }
     const instructions = [
+      'Write replies and summaries in English unless the user requests another language. After using tools, explain the result in ordinary prose.',
       buildSharedUserContextPrompt(),
       relevantMemoryPrompt,
       toolInstructions,

@@ -1,4 +1,4 @@
-import { YACHIYO_PERSONA_ID, YACHIYO_PERSONA_NAME, YACHIYO_SOUL } from '@shared/personas/yachiyo'
+import { LEGACY_YACHIYO_SOUL, YACHIYO_PERSONA_ID, YACHIYO_PERSONA_NAME, YACHIYO_SOUL } from '@shared/personas/yachiyo'
 import { buildSharedUserContextPrompt } from './shared-user-context'
 
 const AGENT_PROFILE_KEY = 'yachiyo-agent-profiles-v1'
@@ -60,7 +60,7 @@ export function getActiveAgentProfile(): AgentProfile {
 export function buildAgentIdentityPrompt(profile = getActiveAgentProfile()): string {
   return [
     '<agent_soul>',
-    profile.soul.trim(),
+    profile.soul === LEGACY_YACHIYO_SOUL ? YACHIYO_SOUL : profile.soul.trim(),
     '</agent_soul>',
     buildSharedUserContextPrompt(),
   ]
