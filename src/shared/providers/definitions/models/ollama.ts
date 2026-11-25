@@ -73,7 +73,6 @@ export default class Ollama extends OpenAICompatible {
     }
   }
   public isSupportToolUse(): boolean {
-    if (this.options.apiHost === 'yachiyo://app/local-ollama/v1') return false
     return helpers.isModelSupportToolUse(this.options.model.modelId) || super.isSupportToolUse()
   }
   public isSupportVision(): boolean {

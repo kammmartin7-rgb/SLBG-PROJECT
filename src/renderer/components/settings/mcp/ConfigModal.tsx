@@ -5,6 +5,7 @@ import {
   Group,
   Kbd,
   Paper,
+  NativeSelect,
   Radio,
   Stack,
   Switch,
@@ -177,6 +178,9 @@ const ConfigForm: FC<{
         )}
         {form.values.transport.type === 'http' && (
           <>
+            <NativeSelect label="Transport" value={form.values.transport.protocol || ''}
+              data={[{ value: '', label: 'Automatic' }, { value: 'streamable-http', label: 'Streamable HTTP' }, { value: 'sse', label: 'SSE' }]}
+              onChange={event => form.setFieldValue('transport.protocol', event.currentTarget.value || undefined)} />
             <TextInput label="URL" required placeholder="https://..." {...form.getInputProps('transport.url')} />
             {!Capacitor.isNativePlatform() && (
               <Textarea
