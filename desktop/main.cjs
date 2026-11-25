@@ -1,4 +1,4 @@
-const { app, BrowserWindow, net, protocol, session } = require('electron')
+const { app, autoUpdater, BrowserWindow, dialog, net, protocol, session, shell } = require('electron')
 const { join, resolve, extname, sep } = require('node:path')
 const { pathToFileURL } = require('node:url')
 
@@ -8,6 +8,38 @@ protocol.registerSchemesAsPrivileged([{
   scheme,
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }])
+
+const releasePage = 'https://github.com/kammmartin7-rgb/Yachiyo-claw-stronger/releases/latest'
+
+async function checkDesktopUpdate() {
+  if (!app.isPackaged || process.platform !== 'darwin') return
+  const feed = 'https://update.electronjs.org/kammmartin7-rgb/Yachiyo-claw-stronger/darwin-' +
+    process.arch + '/' + encodeURIComponent(app.getVersion())
+  try {
+    // Developer ID builds can install verified updates when the user quits normally.
+    const { promisify } = require('node:util')
+    const inspect = promisify(require('node:child_process').execFile)
+    const { stderr } = await inspect('/usr/bin/codesign', ['-dv', '--verbose=4', process.execPath])
+    if (/^Authority=Developer ID Application:/m.test(stderr)) {
+      autoUpdater.on('error', error => console.warn('Desktop update failed:', error.message))
+      autoUpdater.setFeedURL({ url: feed })
+      autoUpdater.checkForUpdates()
+      return
+    }
+    // Locally signed builds can notify the user about a compatible Mac release.
+    const response = await net.fetch(feed, { credentials: 'omit', signal: AbortSignal.timeout(15000) })
+    if (response.status !== 200) return
+    const update = await response.json()
+    if (typeof update.url !== 'string') return
+    const choice = await dialog.showMessageBox({
+      type: 'info', message: 'A Yachiyo Claw update is available.',
+      buttons: ['Open download page', 'Later'], cancelId: 1, defaultId: 1
+    })
+    if (choice.response === 0) await shell.openExternal(releasePage)
+  } catch (error) {
+    console.warn('Desktop update check unavailable:', error.message)
+  }
+}
 
 function openWindow() {
   const win = new BrowserWindow({
@@ -69,6 +101,7 @@ app.whenReady().then(() => {
   })
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
   openWindow()
+  void checkDesktopUpdate()
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) openWindow() })
 })
 
