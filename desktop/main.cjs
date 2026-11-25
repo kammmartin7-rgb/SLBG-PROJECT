@@ -19,6 +19,7 @@ function openWindow() {
   win.webContents.on('will-navigate', (event, target) => {
     if (!target.startsWith(origin + '/')) event.preventDefault()
   })
+  require('./device-tools.cjs').installDeviceTools(win)
   require('./connections.cjs').installConnections(win)
   win.loadURL(origin + '/')
 }
@@ -39,12 +40,10 @@ app.whenReady().then(() => {
         if (chat) {
           if (!request.headers.get('content-type')?.startsWith('application/json')) return new Response(null, { status: 415 })
           const payload = await request.json()
-          // The agent may attach default tools to a plain conversation.
-          // This local endpoint supports chat and never dispatches actions.
-          for (const key of ['tools', 'tool_choice', 'parallel_tool_calls', 'functions', 'function_call']) {
-            delete payload[key]
-          }
-          const fast = await require('./fast-chat.cjs').fastChat(payload, request.signal)
+          // Native fast chat only handles text. Keep structured tool turns on the compatible endpoint.
+          const usesTools = payload.tools?.length || payload.functions?.length ||
+            payload.messages?.some(message => message.role === 'tool' || message.tool_calls?.length)
+          const fast = !usesTools && await require('./fast-chat.cjs').fastChat(payload, request.signal)
           if (fast) return fast
           body = JSON.stringify(payload)
         }

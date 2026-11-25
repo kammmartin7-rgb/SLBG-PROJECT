@@ -16,7 +16,7 @@ describe('disabled Agent capability prompt', () => {
   })
 
   it('guides the model only while Agent capability is disabled', () => {
-    expect(getDisabledAgentCapabilityPrompt('chat-1')).toContain('Agent 能力')
+    expect(getDisabledAgentCapabilityPrompt('chat-1')).toContain('Agent mode')
     saveAgentSessionConfig('chat-1', { enabled: true })
     expect(getDisabledAgentCapabilityPrompt('chat-1')).toBe('')
   })

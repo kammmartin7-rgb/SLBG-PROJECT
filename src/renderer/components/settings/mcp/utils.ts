@@ -1,3 +1,4 @@
+import { MCPOAuthConfigSchema, MCPSecretRefSchema } from '@shared/types/mcp'
 import * as shellQuote from 'shell-quote'
 import { v4 as uuid } from 'uuid'
 import { z } from 'zod'
@@ -122,11 +123,19 @@ const serverConfigSchema = z.union([
     .transform((data) => ({ ...data, type: 'stdio' as const })),
   z
     .object({
-      url: z.string(),
+      url: z.string().url(),
+      type: z.enum(['http', 'streamable-http', 'sse']).optional(),
+      protocol: z.enum(['streamable-http', 'sse']).optional(),
+      oauth: MCPOAuthConfigSchema.optional(),
+      secretRefs: z.array(MCPSecretRefSchema).optional(),
       headers: z.record(z.string(), z.string()).optional(),
       name: z.string().optional(),
     })
-    .transform((data) => ({ ...data, type: 'http' as const })),
+     .transform(({ type, oauth, ...data }) => ({
+      ...data, type: 'http' as const,
+      protocol: data.protocol ?? (type === 'sse' || type === 'streamable-http' ? type : undefined),
+      ...(oauth ? { oauth: { ...oauth, redirectUri: oauth.redirectUri as 'yachiyoclaw://oauth/mcp' | 'yachiyoclaw-dev://oauth/mcp' | undefined } } : {}),
+    })),
 ])
 
 export function parseServerFromJson(text: string): MCPServerConfig | undefined {

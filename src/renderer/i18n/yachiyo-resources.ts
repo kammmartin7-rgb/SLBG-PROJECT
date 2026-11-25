@@ -9,6 +9,12 @@ import { yachiyoUtilityEnglish, yachiyoUtilityTraditionalChinese } from './yachi
 const english: Record<string, string> = {
   ...yachiyoRealtimeEnglish,
   ...yachiyoSettingsEnglish,
+  更多工具: 'More tools',
+  已保存: 'Saved',
+  工具调用: 'Tool call',
+  主题操作: 'Theme actions',
+  会话操作: 'Conversation actions',
+  '插件 ID: {{id}}\n版本: {{version}}\n签名: {{signature}}': 'Plugin ID: {{id}}\nVersion: {{version}}\nSignature: {{signature}}',
   主导航: 'Main navigation',
   聊天: 'Chat',
   交互式: 'Interactive',

@@ -1,3 +1,4 @@
+import { desktopBridge } from '@/packages/model-calls/toolsets/desktop-device'
 import * as defaults from '@shared/defaults'
 import { CORE_AGENT_PRINCIPAL } from '@shared/agent'
 import type { ChatStreamOptions, ModelStreamPart } from '@shared/models/types'
@@ -137,7 +138,7 @@ export async function submitTaskMessage(
 ): Promise<void> {
   setActiveAgentSession(taskId)
   const queryKey = [TASK_SESSION_QUERY_KEY, taskId]
-  let currentSession = queryClient.getQueryData<TaskSession>(queryKey)
+  let currentSession = queryClient.getQueryData<TaskSession>(queryKey) ?? await getTaskSession(taskId)
   if (!currentSession) {
     log.error('Task session not found:', taskId)
     return
@@ -192,7 +193,7 @@ export async function submitTaskMessage(
           generating: false,
           cancel: undefined,
           status: [],
-          contentParts: [{ type: 'text', text: localOutcome.message || '本地流程已完成。' }],
+          contentParts: [{ type: 'text', text: localOutcome.message || 'Local task completed.' }],
         }
         const localSession = queryClient.getQueryData<TaskSession>(queryKey)
         if (localSession) {
@@ -383,6 +384,7 @@ async function generateTaskResponse(
     const systemMessage: Message = createMessage(
       'system',
       buildTaskSystemPrompt(workingDir, {
+        desktopHost: Boolean(desktopBridge()),
         agentIdentity: [buildAgentIdentityPrompt(), relevantMemoryPrompt].filter(Boolean).join('\n\n'),
         deviceAgent,
         enabledFeatureIds,
@@ -401,9 +403,9 @@ async function generateTaskResponse(
     const { tools, instructions, activeTools } = await buildToolsForSession(model, {
       messages: promptMessages,
       agentSessionId: deviceAgent ? agentRunId : taskId,
-      agentApprovalSessionId: deviceAgent ? taskId : undefined,
+      agentApprovalSessionId: taskId,
       featureOptions: {
-        'core-agent': { agentMode: true },
+        'core-agent': { agentMode: true, linkedSessionId: session?.linkedSessionId },
         'web-search': { webBrowsing },
         'knowledge-base': { knowledgeBase },
         sandbox: { sandboxEnabled },
@@ -508,7 +510,7 @@ async function generateTaskResponse(
             sessionId: taskId,
             runId: agentRunId,
             signal: abortController.signal,
-            title: '检测到 Agent 可能陷入循环',
+            title: 'The agent may be repeating the same action',
             detail: warning.detail,
             risk: 'safe',
             kind: 'loop',
@@ -642,7 +644,7 @@ async function generateTaskResponse(
       retryTransientStream
         ? undefined
         : loopError
-        ? `Agent 已停止：${loopError.warning.detail}`
+        ? `Agent stopped: ${loopError.warning.detail}`
         : abortController.signal.aborted
           ? undefined
           : err instanceof Error

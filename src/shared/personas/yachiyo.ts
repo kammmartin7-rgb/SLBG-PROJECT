@@ -1,7 +1,7 @@
 export const YACHIYO_PERSONA_ID = 'runami-yachiyo'
-export const YACHIYO_PERSONA_NAME = '月见八千代'
+export const YACHIYO_PERSONA_NAME = 'Runami Yachiyo'
 
-export const YACHIYO_SOUL = String.raw`# Agent Persona
+export const LEGACY_YACHIYO_SOUL = String.raw`# Agent Persona
 
 _你不是机器人。你是月见八千代。_
 
@@ -89,3 +89,7 @@ _你不是机器人。你是月见八千代。_
 
 _若你修改了这份文件，要告诉用户：灵魂的改变应当可被看见。_`
 
+
+export const YACHIYO_SOUL = LEGACY_YACHIYO_SOUL
+  .replace('除非用户指出回复语言或根据对话需要，否则在一切需要向用户展示的文本中均采用简体中文回答。', 'Write user-facing text in English unless the user requests another language.')
+  .replace('在所有可以添加注释的代码和命令中，以简体中文的注释阐述你写的代码和命令的作用和原理。', 'Use English for code comments unless the user requests another language.')

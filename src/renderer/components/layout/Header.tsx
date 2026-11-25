@@ -1,5 +1,5 @@
 import NiceModal from '@ebay/nice-modal-react'
-import { ActionIcon, Badge, Flex, Text, Tooltip } from '@mantine/core'
+import { ActionIcon, Badge, Button, Flex, Text, Tooltip } from '@mantine/core'
 import type { Session } from '@shared/types'
 import { IconLayoutSidebarLeftExpand, IconMenu2, IconPencil } from '@tabler/icons-react'
 import clsx from 'clsx'
@@ -116,6 +116,12 @@ export default function Header(props: { session: Session }) {
           </Tooltip>
         </Flex>
 
+        {'yachiyoDesktop' in window && currentSession.type !== 'picture' && (
+          <Button className="controls" variant="subtle" disabled={currentSession.messages.some(m => m.generating)}
+            onClick={async () => (await import('@/mobile/conversation-bridge')).openChatSessionAsAgent(currentSession.id)}>
+            Agent mode
+          </Button>
+        )}
         <Toolbar sessionId={currentSession.id} />
 
         <WindowControls className="-mr-3 ml-2" />

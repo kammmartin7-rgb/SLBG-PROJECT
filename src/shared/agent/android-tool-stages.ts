@@ -77,6 +77,7 @@ function selectInternalToolsForIntent(
   requested: readonly string[],
 ): string[] {
   const userText = serializedUserMessages(messages)
+  if (requested.some(name => name === 'adb_devices' || name === 'list_sessions') && /(?:agent|session|phone|pixel|adb|usb)/i.test(userText)) return [...requested]
   if (!CODING_INTENT.test(userText)) return [...requested]
 
   if (SIMPLE_WEB_PREVIEW_INTENT.test(userText) && !UBUNTU_INTENT.test(userText)) {

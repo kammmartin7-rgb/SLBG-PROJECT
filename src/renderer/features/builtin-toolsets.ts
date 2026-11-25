@@ -12,6 +12,9 @@ import { createLongTermMemoryToolSet } from '@/packages/model-calls/toolsets/lon
 import sandboxToolSet from '@/packages/model-calls/toolsets/sandbox'
 import { getToolSet as getSessionAttachmentRagToolSet } from '@/packages/model-calls/toolsets/session-attachment-rag'
 import { getToolSetDescription, parseLinkTool, webSearchTool } from '@/packages/model-calls/toolsets/web-search'
+import { desktopDeviceTools, desktopBridge } from '@/packages/model-calls/toolsets/desktop-device'
+import { interAgentTools } from '@/packages/model-calls/toolsets/inter-agent'
+import { getAgentSessionConfig } from '@/mobile/agent-session-config'
 import workspaceBrowserToolSet from '@/packages/model-calls/toolsets/workspace-browser'
 import { createWorkspaceAgentToolSet } from '@/packages/model-calls/toolsets/workspace-agent'
 import { createCodingToolSet } from '@/packages/model-calls/toolsets/coding'
@@ -34,7 +37,7 @@ import { hasFeatureToolset, registerFeatureToolset } from './toolset-registry'
  */
 
 interface FeatureOptionsBag {
-  'core-agent'?: { agentMode?: boolean }
+  'core-agent'?: { agentMode?: boolean; linkedSessionId?: string }
   'web-search'?: { webBrowsing?: boolean }
   'knowledge-base'?: { knowledgeBase?: Pick<KnowledgeBase, 'id' | 'name'> }
   sandbox?: { sandboxEnabled?: boolean }
@@ -65,10 +68,12 @@ function agentResult(
 
 const coreAgentFactory: FeatureToolsetFactory = async (context) => {
   if (!options(context, 'core-agent')?.agentMode || !context.model.isSupportToolUse()) return null
+  const sessionId = context.approvalSessionId || context.agentRunId
   return {
     instructions: [
       '\n<agent_kernel>',
-      'This is a host-managed tool loop. Do not finish an actionable request with ordinary assistant text.',
+      'This is a host-managed tool loop. Use real tool calls for actions. Write the final summary and any required user action in conversational English unless the user requests another language. Never print tool-call JSON in place of a call.',
+      ...(desktopBridge() ? ['For phone requests, use adb_devices first when available, then select the reported serial. For websites, use browser_navigate and browser_snapshot.'] : []),
       'First call agent_environment_status when runtime capabilities or the selected workspace matter.',
       'Use tools until the requested outcome is verified. Recover from retryable failures by correcting parameters, inspecting state, or choosing another tool.',
       'Call agent_complete only after concrete evidence proves the requested outcome. Call agent_blocked only after a tool result proves a blocker that cannot be resolved with another available tool.',
@@ -76,6 +81,7 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
       '</agent_kernel>\n',
     ].join('\n'),
     tools: {
+      ...(sessionId ? { ...interAgentTools(sessionId, options(context, 'core-agent')?.linkedSessionId), ...desktopDeviceTools(sessionId) } : {}),
       agent_environment_status: tool({
         description: 'Inspect the live Yachiyo Agent runtime, Linux sandbox, workspace, browser, and enabled feature state before choosing tools.',
         inputSchema: z.object({}),
@@ -91,7 +97,8 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
               enabledFeatures: [...(context.enabledFeatureIds ?? [])],
               sandbox: sandbox ?? { state: 'unavailable' },
               externalWorkspace: externalWorkspace ?? { available: false },
-              controlledBrowserAvailable: Boolean(platform.controlledBrowserNavigate && platform.controlledBrowserSnapshot),
+              phoneControlAvailable: desktopBridge() && sessionId ? getAgentSessionConfig(sessionId).deviceControlEnabled : Boolean(options(context, 'android-device')?.deviceControlEnabled),
+              controlledBrowserAvailable: Boolean(desktopBridge() || platform.controlledBrowserNavigate && platform.controlledBrowserSnapshot),
             },
             evidence: ['live_runtime_status'],
           })

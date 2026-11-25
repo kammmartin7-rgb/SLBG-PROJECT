@@ -22,6 +22,8 @@ const APPROVAL_OPTIONS = [
   { value: 'full', label: '完全控制' },
 ]
 
+import { desktopBridge } from '@/packages/model-calls/toolsets/desktop-device'
+
 const APPROVAL_LABEL: Record<AgentApprovalMode, string> = {
   manual: '手动审批',
   smart: 'AI 预审',
@@ -38,6 +40,7 @@ export function describeAgentMode(
   if (!config.deviceControlEnabled) {
     return `Agent · ${translate('内部工具')} · ${translate(APPROVAL_LABEL[config.approvalMode])}`
   }
+  if (desktopBridge()) return 'Agent · PC / USB phone control (ADB)'
   const backend =
     config.backend === 'accessibility' ? translate('无障碍') : config.backend === 'shizuku' ? 'Shizuku' : 'Root'
   return `Agent · ${translate('手机控制')} ${backend} · ${translate(APPROVAL_LABEL[config.approvalMode])}`
@@ -79,6 +82,7 @@ export function AgentSessionControls({
   }, [sessionId, enabled])
 
   const refreshBackend = async (selected = backend) => {
+    if (desktopBridge()) return
     if (selected === 'root') {
       const root = getCachedRootCapability()
       setBackendReady(Boolean(root?.available))
@@ -200,7 +204,7 @@ export function AgentSessionControls({
     void refreshBackend(next)
   }
 
-  const phonePermissionsReady = Boolean(permissionStatus?.overlay && backendReady)
+  const phonePermissionsReady = Boolean(desktopBridge()) || Boolean(permissionStatus?.overlay && backendReady)
   const toggleLabel = String(enabled ? t('停用 Agent') : t('启用 Agent'))
   const settingsLabel = String(t('Agent 设置'))
   const headerActions: AdaptiveActionDescriptor[] = [
@@ -293,19 +297,19 @@ export function AgentSessionControls({
           <section className="yachiyo-agent-config-panel">
             <Switch
               size="md"
-              label={t('手机控制')}
-              description={t('可选。开启后才允许 Agent 通过 Root、Shizuku 或无障碍观察和操作手机。')}
+              label={desktopBridge() ? 'PC / USB phone control (ADB)' : t('手机控制')}
+              description={desktopBridge() ? 'Use devices authorized by Android Debug Bridge on this Mac.' : t('可选。开启后才允许 Agent 通过 Root、Shizuku 或无障碍观察和操作手机。')}
               checked={deviceControlEnabled}
               onChange={(event) => {
                 const checked = event.currentTarget.checked
                 setDeviceControlEnabled(checked)
-                if (checked) {
+                if (checked && !desktopBridge()) {
                   setPhonePermissionOpened(true)
                   void refreshBackend()
                 }
               }}
             />
-            {deviceControlEnabled && (
+            {deviceControlEnabled && !desktopBridge() && (
               <Button variant="light" onClick={() => setPhonePermissionOpened(true)}>
                 {t('手机控制权限与后端')}
               </Button>
@@ -324,7 +328,7 @@ export function AgentSessionControls({
               onChange={selectApprovalMode}
               data={APPROVAL_OPTIONS.map((option) => ({ ...option, label: String(t(option.label)) }))}
             />
-            {deviceControlEnabled && (
+            {deviceControlEnabled && !desktopBridge() && (
               <Switch
                 label={t('任务完成后自动返回 Yachiyo Claw')}
                 description={t('Agent 在其他应用操作完成后，将 Yachiyo Claw 重新切换到前台。')}
