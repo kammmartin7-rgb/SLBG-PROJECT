@@ -15,7 +15,7 @@ export function desktopTransport(config: MCPServerConfig['transport']): MCPTrans
   let service: Service
   if (config.type === 'stdio') {
     if (config.command !== 'yachiyo-math' || config.args.length || Object.keys(config.env ?? {}).length)
-      throw new Error('Select yachiyo-math with no arguments or environment variables for local discrete math.')
+      throw new Error('This desktop app cannot launch this stdio command. Choose a remote MCP URL, or use yachiyo-math with empty arguments and environment for discrete math.')
     service = 'math'
   } else if (config.url === 'https://learn.microsoft.com/api/mcp' && !config.oauth?.enabled &&
     !config.secretRefs?.length && !Object.keys(config.headers ?? {}).length && config.protocol !== 'sse') {

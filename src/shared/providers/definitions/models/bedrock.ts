@@ -9,6 +9,7 @@ interface Options {
   secretKey: string
   sessionToken?: string
   region: string
+  stream?: boolean
   model: ProviderModelInfo
   temperature?: number
   topP?: number

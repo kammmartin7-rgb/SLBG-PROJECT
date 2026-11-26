@@ -55,6 +55,7 @@ export const bedrockProvider = defineProvider({
         sessionToken: config.providerSetting.sessionToken,
         region: config.providerSetting.region || 'us-east-1',
         model: config.model,
+        stream: config.settings.stream,
         temperature: config.settings.temperature,
         topP: config.settings.topP,
         maxOutputTokens: config.settings.maxTokens,

@@ -1,16 +1,30 @@
 import { afterEach, expect, it, vi } from 'vitest'
+import { MCP_ENTRIES_COMMUNITY, MCP_ENTRIES_OFFICIAL } from '@/components/settings/mcp/registries'
+import { parseServerFromJson } from '@/components/settings/mcp/utils'
+import { BUILTIN_MCP_SERVERS, getBuiltinServerConfig } from './builtin'
 import { MCPServer } from './controller'
 
 vi.mock('@/mobile/agent-approval', () => ({ requestAgentApproval: vi.fn() }))
 afterEach(() => vi.unstubAllGlobals())
 
-it.each(['sse', 'streamable-http'] as const)('lists and invokes a tool with bearer authentication over %s', async protocol => {
-  const url = 'https://fixture.example/mcp'
+const cases = [
+  ...(['sse', 'streamable-http'] as const).map(protocol => ({
+    name: protocol, protocol, url: 'https://fixture.example/mcp', headers: { Authorization: 'Bearer fixture-only' } as Record<string, string>,
+  })),
+  ...BUILTIN_MCP_SERVERS.map(({ id }) => {
+    const config = getBuiltinServerConfig(id, 'fixture-license')
+    if (config?.transport.type !== 'http') throw Error('Expected HTTP preset ' + id)
+    return { name: id, protocol: 'streamable-http' as const, url: config.transport.url, headers: config.transport.headers! }
+  }),
+]
+
+it.each(cases)('lists and invokes a tool through $name', async ({ protocol, url, headers }) => {
   const encoder = new TextEncoder()
   let events: ReadableStreamDefaultController<Uint8Array> | undefined
   const methods: string[] = []
   vi.stubGlobal('fetch', async (_input: RequestInfo, init: RequestInit) => {
-    expect(new Headers(init.headers).get('authorization')).toBe('Bearer fixture-only')
+    expect(String(_input)).toContain(new URL(url).origin)
+    for (const [key, value] of Object.entries(headers)) expect(new Headers(init.headers).get(key)).toBe(value)
     if (protocol === 'sse' && init.method !== 'POST') {
       const body = new ReadableStream<Uint8Array>({
         start(controller) {
@@ -33,7 +47,7 @@ it.each(['sse', 'streamable-http'] as const)('lists and invokes a tool with bear
     events!.enqueue(encoder.encode('event: message\ndata: ' + JSON.stringify(reply) + '\n\n'))
     return new Response(null, { status: 202 })
   })
-  const server = new MCPServer({ type: 'http', url, protocol, headers: { Authorization: 'Bearer fixture-only' } })
+  const server = new MCPServer({ type: 'http', url, protocol, headers })
   try {
     await server.start()
     expect(server.status).toEqual({ state: 'running' })
@@ -56,4 +70,16 @@ it('does not attempt an anonymous connection when OAuth is configured without a 
   await server.start()
   expect(server.status).toMatchObject({ state: 'idle', error: expect.stringContaining('credential') })
   expect(fetch).not.toHaveBeenCalled()
+})
+
+
+it.each([...MCP_ENTRIES_OFFICIAL, ...MCP_ENTRIES_COMMUNITY])('parses the $name stdio preset and reports the desktop host limitation', async entry => {
+  const config = parseServerFromJson(JSON.stringify(entry.configuration))!
+  expect(config.transport).toMatchObject({ type: 'stdio', ...entry.configuration })
+  const open = vi.fn()
+  vi.stubGlobal('yachiyoDesktop', { open })
+  const server = new MCPServer(config.transport)
+  await server.start()
+  expect(server.status).toMatchObject({ state: 'idle', error: expect.stringContaining('cannot launch this stdio command') })
+  expect(open).not.toHaveBeenCalled()
 })

@@ -60,5 +60,10 @@ export async function buildToolsForSession(
 ): Promise<BuildToolsResult> {
   ensureRegistered()
   const context = toolsetContextFromLegacyOptions(model, options, platform.type, getEnabledFeatureIds())
+  if (context.enabledFeatureIds?.has('plugins') && model.isSupportToolUse() &&
+      (context.featureOptions['core-agent'] as { agentMode?: boolean } | undefined)?.agentMode) {
+    const { initPluginTools } = await import('@/plugins/plugin-manager')
+    initPluginTools()
+  }
   return buildRegisteredToolsets(context)
 }

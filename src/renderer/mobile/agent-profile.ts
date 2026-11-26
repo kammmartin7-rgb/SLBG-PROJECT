@@ -1,4 +1,5 @@
 import { LEGACY_YACHIYO_SOUL, YACHIYO_PERSONA_ID, YACHIYO_PERSONA_NAME, YACHIYO_SOUL } from '@shared/personas/yachiyo'
+import { z } from 'zod'
 import { buildSharedUserContextPrompt } from './shared-user-context'
 
 const AGENT_PROFILE_KEY = 'yachiyo-agent-profiles-v1'
@@ -50,6 +51,25 @@ export function getAgentProfileState(): AgentProfileState {
 export function saveAgentProfileState(state: AgentProfileState): void {
   if (typeof localStorage === 'undefined') return
   localStorage.setItem(AGENT_PROFILE_KEY, JSON.stringify(state))
+}
+
+// Imported profiles are additive. A second import preserves local edits and selection.
+export function mergeImportedAgentProfiles(value: unknown): AgentProfileState {
+  const imported = z.object({
+    activeProfileId: z.string(),
+    profiles: z.array(z.object({
+      id: z.string().min(1), name: z.string(), soul: z.string(),
+      user: z.string().optional(), memory: z.string().optional(), builtin: z.boolean().optional(),
+    })),
+  }).parse(value)
+  const current = getAgentProfileState()
+  const fresh = localStorage.getItem(AGENT_PROFILE_KEY) === null
+  const profiles = new Map(current.profiles.map(profile => [profile.id, profile]))
+  for (const profile of imported.profiles) {
+    if (fresh || !profiles.has(profile.id)) profiles.set(profile.id, profile)
+  }
+  const useImportedSelection = fresh && profiles.has(imported.activeProfileId)
+  return { activeProfileId: useImportedSelection ? imported.activeProfileId : current.activeProfileId, profiles: [...profiles.values()] }
 }
 
 export function getActiveAgentProfile(): AgentProfile {

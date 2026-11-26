@@ -26,8 +26,8 @@ async function createClient(
   const desktop = desktopTransport(transportConfig)
   if (desktop) return createMCPClient({ name, transport: desktop })
   if (transportConfig.type === 'stdio') {
-    // stdio servers need a local process host; this app only speaks HTTP/SSE MCP.
-    throw new Error('stdio MCP transports are unavailable on mobile.')
+    // Only stdio services implemented by the native desktop bridge reach this client.
+    throw new Error('This app cannot launch this stdio command. Use a supported desktop service or a remote MCP URL.')
   }
   if (transportConfig.type === 'http') {
     if ((transportConfig.oauth?.enabled && !authProvider) || transportConfig.secretRefs?.length) {

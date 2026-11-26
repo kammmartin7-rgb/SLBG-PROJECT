@@ -9,6 +9,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AdaptiveSelect } from '@/components/AdaptiveSelect'
 import { languageNameMap, languages } from '@/i18n/locales'
+import { getAgentProfileState, mergeImportedAgentProfiles, saveAgentProfileState } from '@/mobile/agent-profile'
+import { mergeSettingsConnections } from './-merge-settings-connections'
 import platform from '@/platform'
 import storage, { StorageKey } from '@/storage'
 import { getMetaStorage, recoverSessionList } from '@/stores/chatStore'
@@ -132,7 +134,7 @@ const DataRecoverySection = () => {
   )
 }
 
-const ImportExportDataSection = () => {
+export const ImportExportDataSection = () => {
   const { t } = useTranslation()
 
   const [importTips, setImportTips] = useState('')
@@ -240,6 +242,10 @@ const ImportExportDataSection = () => {
           console.error('Failed to get storage keys:', error)
         }
 
+        if (exportItems.includes(ExportDataItem.Copilot)) {
+          yield ',"__agent_profiles":' + JSON.stringify(getAgentProfileState())
+        }
+
         // Export session meta from DB (no longer in key-value storage)
         if (exportItems.includes(ExportDataItem.Conversations)) {
           try {
@@ -285,6 +291,8 @@ const ImportExportDataSection = () => {
             throw new Error('FileReader result is not string')
           }
           const importData = JSON.parse(result)
+          const profiles = importData.__agent_profiles === undefined
+            ? undefined : mergeImportedAgentProfiles(importData.__agent_profiles)
           // 如果导入数据中包含了老的版本号，应该仅仅针对老的版本号进行迁移
           await migrateOnData(
             {
@@ -310,7 +318,10 @@ const ImportExportDataSection = () => {
             : undefined
 
           for (const [key, value] of entriesToImport) {
-            await storage.setItemNow(key, value)
+            const data = key === StorageKey.Settings
+              ? mergeSettingsConnections(await storage.getItem(key, null), value as Settings)
+              : value
+            await storage.setItemNow(key, data)
           }
 
           if (importedChatSessions) {
@@ -326,6 +337,8 @@ const ImportExportDataSection = () => {
               }
             }
           }
+
+          if (profiles) saveAgentProfileState(profiles)
 
           // 由于即将重启应用，这里不需要清理loading状态
           // props.onCancel() // 导入成功后立即关闭设置窗口，防止用户点击保存、导致设置数据被覆盖

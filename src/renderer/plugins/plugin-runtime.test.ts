@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+import { runInNewContext } from 'node:vm'
 import type { JsonValue } from '@shared/agent/contracts'
 import { describe, expect, it, vi } from 'vitest'
 import { createPluginSandbox, type PluginEntryEvaluator } from './plugin-sandbox'
@@ -432,4 +434,30 @@ describe('plugin runtime end-to-end (isolate protocol)', () => {
     await expect(invocation).rejects.toThrow('disposed')
     expect(hostSignalAborted).toBe(true)
   })
+})
+
+
+it.each([
+  { id: 'hello-yachiyo', count: 2 }, { id: 'error-help-center', count: 2 }, { id: 'ubuntu-runtime', count: 11 },
+])('invokes all $count handlers bundled with $id through the plugin runtime', async ({ id, count }) => {
+  const methods = ['status', 'install', 'remove', 'exec', 'startJob', 'jobStatus', 'jobOutput', 'stopJob', 'readFile', 'writeFile']
+  const runtime = setup((source, api) => { runInNewContext(source, { yachiyo: api }) }, {
+    authorize: () => ({ allowed: true }),
+    hostApi: {
+      ...Object.fromEntries(methods.map(name => ['linux.' + name, () => ({ fixtureMethod: name })])),
+      'storage.get': () => '3', 'storage.set': () => null,
+    },
+  })
+  try {
+    const handlers = await runtime.load(id, await readFile('examples/plugins/' + id + '/main.js', 'utf8'))
+    expect(handlers).toHaveLength(count)
+    for (const handler of handlers) {
+      const result = await runtime.invokeTool(handler.name, { value: 'fixture' })
+      if (handler.name.startsWith('ubuntu-runtime_')) expect(result).toHaveProperty('fixtureMethod')
+      else if (handler.name === 'hello-yachiyo_echo') expect(result).toEqual({ echoed: { value: 'fixture' } })
+      else expect(result).toHaveProperty('schemaVersion', 1)
+    }
+  } finally {
+    runtime.dispose()
+  }
 })
