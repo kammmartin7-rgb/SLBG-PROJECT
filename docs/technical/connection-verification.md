@@ -7,7 +7,7 @@
 - The packaged Mac executable ran its bundled math service and returned 6 for gcd(84, 30). A standard MCP client called the public Microsoft Learn endpoint and received a nonempty documentation result. These two live checks exercise the packaged child and the external service respectively. The independent attempt to launch an isolated packaged Electron window for a renderer-to-IPC run exited with SIGABRT before the renderer appeared. The packaged UI path remains unverified.
 - The four desktop ADB handlers reached a mock bridge. Real Pixel verification was blocked because the test host prevented ADB from initializing its local state.
 - The Settings export and restore buttons transferred a synthetic profile copy using a real JSON File and FileReader, and retained both source and destination agent IDs, MCP servers, active destination agent and destination API key.
-- Paid accounts, live OAuth consent, real vendor credentials over SSE or Streamable HTTP, and live Android Ubuntu service results remain unverified. Some plugin titles and plugin-provided views still contain Chinese text.
+- The local Ollama catalog listed qwen-local:latest. The first chat timed out after 90 seconds. A retry generated the expected English word through the Ollama session adapter in 18 seconds. Paid accounts, live OAuth consent, real vendor credentials over SSE or Streamable HTTP, and live Android Ubuntu service results remain unverified. Some plugin titles and plugin-provided views still contain Chinese text.
 
 ## Agent tools
 
@@ -100,7 +100,7 @@ All 41 templates parsed. Each attempted start on the standalone desktop path rea
 
 Disposable browser/desktop state fixtures exercised importing twice, retaining target agent selection, same-ID agents and MCP connections, and an existing provider key omitted from the incoming settings. Agent profiles are now included under __agent_profiles when copilots are exported. Backups written before this field existed cannot restore an omitted profile. Secure vault values and plugin grants are separate from exported server definitions. No automatic transfer between browser and Electron origins was established.
 
-The downloadable Intel Mac v0.0.28 predates the common Agent plugin initialization, web product version, additive profile migration and Bedrock streaming fixes. That release has a different source tree. An ad-hoc-signed desktop install can offer a release download; transparent replacement requires the supported Developer ID update path.
+The previous Intel Mac v0.0.28 predates the common Agent plugin initialization, web product version, additive profile migration and Bedrock streaming fixes. The v0.0.29 desktop packaging source includes these fixes and the clearer stdio error. An ad-hoc-signed desktop install can offer a release download; transparent replacement requires the supported Developer ID update path.
 
 ## Reproduction
 
