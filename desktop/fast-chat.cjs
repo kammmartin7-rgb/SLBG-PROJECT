@@ -5,6 +5,19 @@ const { YACHIYO_SOUL } = require('../src/shared/personas/yachiyo.ts')
 const concisePersona = 'You are Yachiyo. Answer directly in the user’s language. Give details when requested.'
 const chatUrl = 'http://127.0.0.1:11434/api/chat'
 
+exports.hasToolTurn = function hasToolTurn(payload) {
+  return Boolean(payload.tools?.length || payload.functions?.length ||
+    payload.messages?.some(message => message.role === 'tool' || message.tool_calls?.length))
+}
+
+exports.compatiblePayload = function compatiblePayload(payload, toolTurn) {
+  // Ollama can spend the first seconds of a tool turn generating hidden reasoning.
+  if (toolTurn && payload.model === 'qwen-local:latest' && payload.reasoning_effort === undefined) {
+    return { ...payload, reasoning_effort: 'none' }
+  }
+  return payload
+}
+
 function nativeMessages(payload) {
   if (!Array.isArray(payload.messages)) return null
   const messages = []

@@ -72,12 +72,11 @@ app.whenReady().then(() => {
         if (chat) {
           if (!request.headers.get('content-type')?.startsWith('application/json')) return new Response(null, { status: 415 })
           const payload = await request.json()
-          // Native fast chat only handles text. Keep structured tool turns on the compatible endpoint.
-          const usesTools = payload.tools?.length || payload.functions?.length ||
-            payload.messages?.some(message => message.role === 'tool' || message.tool_calls?.length)
-          const fast = !usesTools && await require('./fast-chat.cjs').fastChat(payload, request.signal)
+          const { fastChat, hasToolTurn, compatiblePayload } = require('./fast-chat.cjs')
+          const toolTurn = hasToolTurn(payload)
+          const fast = !toolTurn && await fastChat(payload, request.signal)
           if (fast) return fast
-          body = JSON.stringify(payload)
+          body = JSON.stringify(compatiblePayload(payload, toolTurn))
         }
         const upstream = await fetch('http://127.0.0.1:11434' + path, {
           method: request.method, headers: { 'Content-Type': 'application/json' },
