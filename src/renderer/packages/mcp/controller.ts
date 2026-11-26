@@ -30,6 +30,9 @@ async function createClient(
     throw new Error('stdio MCP transports are unavailable on mobile.')
   }
   if (transportConfig.type === 'http') {
+    if ((transportConfig.oauth?.enabled && !authProvider) || transportConfig.secretRefs?.length) {
+      throw new Error('This connection requires credential resolution before it can start.')
+    }
     const safeFetch = createSafeMcpOAuthFetch()
     const createSseClient = async () => {
       const transport = new SSEClientTransport(new URL(transportConfig.url), {

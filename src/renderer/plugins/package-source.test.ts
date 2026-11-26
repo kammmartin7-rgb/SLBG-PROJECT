@@ -76,3 +76,29 @@ describe('plugin package source resolution', () => {
     )
   })
 })
+
+it('resolves a GitHub ZIP file viewer link to package bytes', async () => {
+  const raw = 'https://raw.githubusercontent.com/acme/demo/main/plugins/tool.zip'
+  const fetchImpl = vi.fn(async () => new Response(null, { headers: { 'content-length': '100' } }))
+  expect(await resolvePluginPackageSource('https://github.com/acme/demo/blob/main/plugins/tool.zip', fetchImpl))
+    .toEqual({ url: raw, size: 100 })
+  expect(fetchImpl).toHaveBeenCalledWith(raw, expect.objectContaining({ method: 'HEAD' }))
+})
+
+it('does not mistake a source release archive for an installable plugin', async () => {
+  const fetchImpl = vi.fn(async (url) => String(url).includes('raw.githubusercontent.com') ? new Response(null, { status: 404 }) : Response.json({ assets: [
+    { name: 'demo-source.zip', browser_download_url: 'https://example.com/demo-source.zip', size: 100 },
+  ] }))
+  await expect(resolvePluginPackageSource('https://github.com/acme/demo', fetchImpl))
+    .rejects.toThrow('github_release_plugin_asset_missing')
+})
+
+it('uses a single packaged catalog tool when the release only contains the desktop application', async () => {
+  const { default: catalog } = await import('../../../plugin-marketplace/index.json')
+  const fetchImpl = vi.fn()
+    .mockResolvedValueOnce(Response.json({ assets: [{ name: 'desktop.zip', size: 200_000_000 }] }))
+    .mockResolvedValueOnce(Response.json(catalog))
+  const entry = catalog.plugins[0]
+  expect(await resolvePluginPackageSource('https://github.com/acme/demo', fetchImpl))
+    .toEqual({ url: entry.packageUrl, size: entry.packageSize, sha256: entry.sha256 })
+})
