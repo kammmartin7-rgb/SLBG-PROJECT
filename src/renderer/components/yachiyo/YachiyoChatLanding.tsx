@@ -18,7 +18,7 @@ export function YachiyoChatLanding() {
     <div className="yachiyo-chat-landing">
       <YachiyoMark size={52} />
       <div>
-        <Title order={1}>Yachiyo Claw</Title>
+        <Title order={1}>SLBG PROJECT</Title>
         <Text c="dimmed">{t('今天想聊些什么？')}</Text>
       </div>
       {defaultModel && (

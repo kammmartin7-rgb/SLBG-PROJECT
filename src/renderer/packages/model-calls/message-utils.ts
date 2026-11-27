@@ -229,11 +229,12 @@ export function injectModelSystemPrompt(
   const metadataPrompt = `Current model: ${model}\nCurrent date: ${dayjs().format(
     'YYYY-MM-DD'
   )}\n Additional info for this conversation: ${additionalInfo}\n\n`
+  const languageRule = 'Reply in the language of the latest user request unless the user explicitly asks for a different language.'
   let hasInjected = false
   const injectedMessages = messages.map((m) => {
-    if (m.role === role && !hasInjected) {
+    if (m.role === 'system' && role === 'system' && !hasInjected) {
       m = cloneMessage(m) // 复制，防止原始数据在其他地方被直接渲染使用
-      m.contentParts = [{ type: 'text', text: metadataPrompt + getMessageText(m) }]
+      m.contentParts = [{ type: 'text', text: metadataPrompt + getMessageText(m) + '\n\n' + languageRule }]
       hasInjected = true
     }
     return m
@@ -244,7 +245,7 @@ export function injectModelSystemPrompt(
       id: `injected-system-prompt-${dayjs().valueOf()}`,
       role,
       timestamp: Date.now(),
-      contentParts: [{ type: 'text', text: metadataPrompt.trimEnd() }],
+      contentParts: [{ type: 'text', text: metadataPrompt + languageRule }],
     })
   }
 

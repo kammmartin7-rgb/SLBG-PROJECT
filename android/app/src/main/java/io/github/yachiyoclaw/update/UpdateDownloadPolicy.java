@@ -10,7 +10,7 @@ final class UpdateDownloadPolicy {
     static final long MAX_APK_BYTES = 512L * 1024L * 1024L;
     static final int MAX_SIDECAR_BYTES = 4096;
     static final int MAX_REDIRECTS = 5;
-    private static final String RELEASE_PREFIX = "/wayne1145/yachiyo-claw/releases/download/";
+    private static final String RELEASE_PREFIX = "/kammmartin7-rgb/slbg-project/releases/download/";
     private static final String GITHUB_MIRROR_HOST = "ghfast.top";
     private static final String GITHUB_MIRROR_PREFIX = "/https://github.com" + RELEASE_PREFIX;
     private static final Pattern SHA256 = Pattern.compile("(?i)^\\s*(?:sha256:)?([0-9a-f]{64})(?:\\s+[*]?.+)?\\s*$");

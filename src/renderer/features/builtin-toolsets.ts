@@ -4,6 +4,7 @@ import { ANDROID_TOOL_STAGE_INITIAL } from '@shared/agent/android-tool-stages'
 import type { KnowledgeBase, Message } from '@shared/types'
 import type { SkillInfo } from '@shared/types/skills'
 import { createCameraCaptureTool } from '@/mobile/camera-tool'
+import { discoveryTools } from '@/packages/mcp/discovery'
 import { mcpController } from '@/packages/mcp/controller'
 import { createAndroidDeviceToolSet } from '@/packages/model-calls/toolsets/android-device'
 import fileToolSet from '@/packages/model-calls/toolsets/file'
@@ -72,7 +73,7 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
   return {
     instructions: [
       '\n<agent_kernel>',
-      'This is a host-managed tool loop. Use real tool calls for actions. Write the final summary and any required user action in conversational English unless the user requests another language. Never print tool-call JSON in place of a call.',
+      'This is a host-managed tool loop. Use real tool calls for actions. Write the final summary and any required user action as conversational text in the language of the user’s request. Never print tool-call JSON in place of a call.',
       ...(desktopBridge() ? ['For phone requests, use adb_devices first when available, then select the reported serial. For websites, use browser_navigate and browser_snapshot.'] : []),
       'First call agent_environment_status when runtime capabilities or the selected workspace matter.',
       'Use tools until the requested outcome is verified. Recover from retryable failures by correcting parameters, inspecting state, or choosing another tool.',
@@ -90,6 +91,7 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
             platform.sandboxStatus?.().catch((error) => ({ state: 'error', error: String(error) })),
             platform.externalWorkspaceStatus?.().catch((error) => ({ available: false, error: String(error) })),
           ])
+          const browserAvailable = Boolean(desktopBridge() || platform.controlledBrowserNavigate && platform.controlledBrowserSnapshot)
           return agentResult(true, 'environment_observed', 'Live Agent environment inspected.', {
             data: {
               platform: context.platformType,
@@ -98,7 +100,8 @@ const coreAgentFactory: FeatureToolsetFactory = async (context) => {
               sandbox: sandbox ?? { state: 'unavailable' },
               externalWorkspace: externalWorkspace ?? { available: false },
               phoneControlAvailable: desktopBridge() && sessionId ? getAgentSessionConfig(sessionId).deviceControlEnabled : Boolean(options(context, 'android-device')?.deviceControlEnabled),
-              controlledBrowserAvailable: Boolean(desktopBridge() || platform.controlledBrowserNavigate && platform.controlledBrowserSnapshot),
+              controlledBrowserAvailable: browserAvailable,
+              ...(!browserAvailable && { browserUnavailableReason: 'Open the SLBG desktop app or Android app to use its controlled browser.' }),
             },
             evidence: ['live_runtime_status'],
           })
@@ -153,7 +156,8 @@ function sessionAttachmentRagIds(messages: readonly Message[]): number[] {
 }
 
 const mcpFactory: FeatureToolsetFactory = async (context) => {
-  const tools = { ...mcpController.getAvailableTools(options(context, 'mcp')?.agentSessionId) }
+  const sessionId = options(context, 'mcp')?.agentSessionId
+  const tools = { ...mcpController.getAvailableTools(sessionId), ...(sessionId ? discoveryTools(sessionId) : {}) }
   return { instructions: '', tools }
 }
 

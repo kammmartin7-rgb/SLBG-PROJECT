@@ -1,7 +1,7 @@
 import { compareVersions, validate } from 'compare-versions'
 
-export const YACHIYO_GITHUB_OWNER = 'Wayne1145'
-export const YACHIYO_GITHUB_REPO = 'yachiyo-claw'
+export const YACHIYO_GITHUB_OWNER = 'kammmartin7-rgb'
+export const YACHIYO_GITHUB_REPO = 'SLBG-PROJECT'
 export const YACHIYO_GITHUB_URL = `https://github.com/${YACHIYO_GITHUB_OWNER}/${YACHIYO_GITHUB_REPO}`
 export const YACHIYO_RELEASES_URL = `${YACHIYO_GITHUB_URL}/releases`
 export const YACHIYO_LATEST_RELEASE_URL = `${YACHIYO_RELEASES_URL}/latest`

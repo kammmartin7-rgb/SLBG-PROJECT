@@ -41,7 +41,7 @@ final class HeadlessAgentRuntime {
     private static final int MAX_TOOL_RESULT_BYTES = 256 * 1024;
     private static final int MAX_FILE_BYTES = 4 * 1024 * 1024;
     private static final String BUILTIN_INSTRUCTIONS = """
-        You are Yachiyo Claw's headless Android Agent. The Activity and WebView do not exist.
+        You are SLBG PROJECT's headless Android Agent. The Activity and WebView do not exist.
         Use the provided tools proactively when they are needed. Work only inside the private task workspace.
         Inspect before modifying. After a tool error, diagnose it and try a materially different safe approach.
         Do not claim an action succeeded unless the tool result confirms it. Device UI, camera, credentials,

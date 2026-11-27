@@ -107,7 +107,7 @@ const SETTINGS_HEADER_TITLES: Readonly<Record<string, string>> = {
 }
 
 function resolveSettingsHeaderTitle(pathname: string, translate: (key: string) => string): string {
-  if (pathname === '/settings') return 'Yachiyo Claw'
+  if (pathname === '/settings') return 'SLBG PROJECT'
   if (pathname === '/about') return translate('About')
   const section = pathname.split('/').filter(Boolean)[1]
   return translate((section && SETTINGS_HEADER_TITLES[section]) || 'Settings')
@@ -794,7 +794,7 @@ export function AndroidAppShell({ children }: { children: ReactNode }) {
                           <AndroidPagerHeaderTitle
                             title={settingsHeaderTitle}
                             subtitle={String(t('Settings'))}
-                            targetTitle="Yachiyo Claw"
+                            targetTitle="SLBG PROJECT"
                             targetSubtitle={pagerTargetLabel}
                             connected={hasProvider}
                             transition={standardHeaderTransition}
@@ -802,9 +802,9 @@ export function AndroidAppShell({ children }: { children: ReactNode }) {
                         </AndroidSettingsChromeTransition>
                       ) : (
                         <AndroidPagerHeaderTitle
-                          title={conversationTitle || 'Yachiyo Claw'}
+                          title={conversationTitle || 'SLBG PROJECT'}
                           subtitle={String(isAgentTaskPath ? t('Agent 对话') : activeTabLabel)}
-                          targetTitle="Yachiyo Claw"
+                          targetTitle="SLBG PROJECT"
                           targetSubtitle={pagerTargetLabel}
                           connected={hasProvider}
                           transition={standardHeaderTransition}

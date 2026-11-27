@@ -106,7 +106,7 @@ export const CORE_SETTINGS: SettingsEntry[] = [
   },
   {
     route: '/about',
-    label: '关于 Yachiyo Claw',
+    label: '关于 SLBG PROJECT',
     detail: '版本与开源信息',
     icon: IconInfoCircle,
     group: 'app',

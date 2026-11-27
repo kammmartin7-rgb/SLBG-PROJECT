@@ -1,4 +1,5 @@
 import { LEGACY_YACHIYO_SOUL, YACHIYO_PERSONA_ID, YACHIYO_PERSONA_NAME, YACHIYO_SOUL } from '@shared/personas/yachiyo'
+import { z } from 'zod'
 import { buildSharedUserContextPrompt } from './shared-user-context'
 
 const AGENT_PROFILE_KEY = 'yachiyo-agent-profiles-v1'
@@ -7,6 +8,7 @@ export interface AgentProfile {
   id: string
   name: string
   soul: string
+  skillNames?: string[]
   /** @deprecated Migrated to shared-user-context and retained for stored-profile compatibility. */
   user?: string
   /** @deprecated Migrated to shared-user-context and retained for stored-profile compatibility. */
@@ -52,9 +54,32 @@ export function saveAgentProfileState(state: AgentProfileState): void {
   localStorage.setItem(AGENT_PROFILE_KEY, JSON.stringify(state))
 }
 
+// Imported profiles are additive. A second import preserves local edits and selection.
+export function mergeImportedAgentProfiles(value: unknown): AgentProfileState {
+  const imported = z.object({
+    activeProfileId: z.string(),
+    profiles: z.array(z.object({
+      id: z.string().min(1), name: z.string(), soul: z.string(), skillNames: z.array(z.string()).optional(),
+      user: z.string().optional(), memory: z.string().optional(), builtin: z.boolean().optional(),
+    })),
+  }).parse(value)
+  const current = getAgentProfileState()
+  const fresh = localStorage.getItem(AGENT_PROFILE_KEY) === null
+  const profiles = new Map(current.profiles.map(profile => [profile.id, profile]))
+  for (const profile of imported.profiles) {
+    if (fresh || !profiles.has(profile.id)) profiles.set(profile.id, profile)
+  }
+  const useImportedSelection = fresh && profiles.has(imported.activeProfileId)
+  return { activeProfileId: useImportedSelection ? imported.activeProfileId : current.activeProfileId, profiles: [...profiles.values()] }
+}
+
 export function getActiveAgentProfile(): AgentProfile {
   const state = getAgentProfileState()
   return state.profiles.find((profile) => profile.id === state.activeProfileId) || state.profiles[0]
+}
+
+export function skillsForAgent(enabled: string[], profile = getActiveAgentProfile()) {
+  return enabled.filter(name => profile.skillNames === undefined || profile.skillNames.includes(name))
 }
 
 export function buildAgentIdentityPrompt(profile = getActiveAgentProfile()): string {

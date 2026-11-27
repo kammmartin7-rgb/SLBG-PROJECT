@@ -101,7 +101,7 @@ public final class LocalInferenceService extends Service {
     private android.app.Notification notification(String text) {
         return new NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(getApplicationInfo().icon)
-            .setContentTitle("Yachiyo Claw 本地模型")
+            .setContentTitle("SLBG PROJECT 本地模型")
             .setContentText(text)
             .setOngoing(true)
             .setOnlyAlertOnce(true)

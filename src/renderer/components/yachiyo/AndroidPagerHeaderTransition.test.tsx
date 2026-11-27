@@ -28,7 +28,7 @@ describe('AndroidPagerHeaderTransition', () => {
         <AndroidPagerHeaderTitle
           title="聊天"
           subtitle="会话"
-          targetTitle="Yachiyo Claw"
+          targetTitle="SLBG PROJECT"
           targetSubtitle="设置"
           connected
           transition={transition}

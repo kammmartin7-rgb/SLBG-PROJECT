@@ -149,7 +149,7 @@ public final class YachiyoUpdatePlugin extends Plugin {
             org.json.JSONObject task = DownloadTaskStore.get(getContext(), taskId);
             long bytes = task == null ? 0 : task.optLong("bytesDownloaded", 0);
             long total = task == null ? 0 : task.optLong("bytesTotal", 0);
-            DownloadTaskStore.update(getContext(), taskId, "update", "Yachiyo Claw " + version, status, bytes, total, 0, null);
+            DownloadTaskStore.update(getContext(), taskId, "update", "SLBG PROJECT " + version, status, bytes, total, 0, null);
             WorkManager.getInstance(getContext()).cancelUniqueWork(workName(version));
             if (deletePartial) deletePartial(version);
             call.resolve(new JSObject().put("accepted", true));
@@ -289,7 +289,7 @@ public final class YachiyoUpdatePlugin extends Plugin {
                 Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", apk);
                 Intent install = new Intent(Intent.ACTION_INSTALL_PACKAGE);
                 install.setDataAndType(uri, APK_MIME);
-                install.setClipData(ClipData.newRawUri("Yachiyo Claw update", uri));
+                install.setClipData(ClipData.newRawUri("SLBG PROJECT update", uri));
                 install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
                 for (android.content.pm.ResolveInfo handler : getContext().getPackageManager().queryIntentActivities(install, 0)) {
                     getContext().grantUriPermission(

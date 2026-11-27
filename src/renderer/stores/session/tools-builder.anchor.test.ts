@@ -73,6 +73,7 @@ describe('buildToolsForSession model-visible surface (anchor)', () => {
     expect(tools).toMatchInlineSnapshot(`
       [
         "forget_long_term_memory",
+        "poll_workflow_status",
         "remember_long_term_memory",
         "sandbox_bash",
         "sandbox_edit",

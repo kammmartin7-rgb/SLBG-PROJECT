@@ -13,6 +13,7 @@ import type { MCPServerConfig } from '@/packages/mcp/types'
 import { toastError } from '@/packages/toast'
 import { useMcpSettings, useSettingsStore } from '@/stores/settingsStore'
 import { trackEvent } from '@/utils/track'
+import { ConnectionCheck } from './ConnectionCheck'
 import { ConfigModal } from './ConfigModal'
 import type { MCPRegistryEntry } from './registries'
 import ServerRegistrySpotlight from './ServerRegistrySpotlight'
@@ -45,6 +46,7 @@ const ServerCard: FC<{
           {t('Edit')}
         </Anchor>
       </Flex>
+      {'yachiyoDesktop' in globalThis && <ConnectionCheck key={JSON.stringify(config.transport)} config={config} />}
     </Paper>
   )
 }

@@ -2,6 +2,8 @@ import {
   ActionIcon,
   Button,
   Flex,
+  MultiSelect,
+  Switch,
   SegmentedControl,
   Select,
   Stack,
@@ -27,6 +29,7 @@ import {
 } from '@/mobile/agent-broker'
 import { type AgentProfile, getAgentProfileState, saveAgentProfileState } from '@/mobile/agent-profile'
 import { getAgentSessionConfig, saveAgentSessionConfig } from '@/mobile/agent-session-config'
+import { useSettingsStore } from '@/stores/settingsStore'
 import platform from '@/platform'
 import { router } from '@/router'
 import { codingProjectStorage } from '@/storage/CodingProjectStorage'
@@ -46,6 +49,7 @@ export function AgentConfigurationPanel({
   const [backend, setBackend] = useState<AgentBackend>(getAgentBackend)
   const [profileState, setProfileState] = useState(getAgentProfileState)
   const [editorOpened, setEditorOpened] = useState(false)
+  const enabledSkills = useSettingsStore((state) => state.skills.enabledSkillNames)
   const activeProfile =
     profileState.profiles.find((profile) => profile.id === profileState.activeProfileId) || profileState.profiles[0]
 
@@ -183,6 +187,13 @@ export function AgentConfigurationPanel({
             value={activeProfile.name}
             onChange={(event) => updateProfile({ name: event.currentTarget.value })}
           />
+          <Switch label={t('Use all enabled skills')} checked={activeProfile.skillNames === undefined}
+            onChange={(event) => updateProfile({ skillNames: event.currentTarget.checked ? undefined : [...enabledSkills] })} />
+          {activeProfile.skillNames !== undefined && (
+            <MultiSelect label={t('Skills for this agent')} data={enabledSkills}
+              value={activeProfile.skillNames.filter(name => enabledSkills.includes(name))}
+              onChange={skillNames => updateProfile({ skillNames })} />
+          )}
           <Textarea
             autosize
             minRows={12}

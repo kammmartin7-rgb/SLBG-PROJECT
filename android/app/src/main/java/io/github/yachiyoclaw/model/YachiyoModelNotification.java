@@ -24,7 +24,7 @@ final class YachiyoModelNotification {
         PendingIntent pending = PendingIntent.getActivity(context, jobId.hashCode(), launch, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification notification = new NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle("Yachiyo Claw 正在下载本地模型")
+            .setContentTitle("SLBG PROJECT 正在下载本地模型")
             .setContentText(progress + "%")
             .setProgress(100, Math.max(0, Math.min(100, progress)), false)
             .setOnlyAlertOnce(true)

@@ -46,7 +46,7 @@ export function MobileUpdateDialog() {
     <Stack gap="md">
       <Text c="chatbox-secondary">
         {status === 'permission-required'
-          ? t('请允许 Yachiyo Claw 安装未知来源应用，授权后返回此处继续安装。')
+          ? t('请允许 SLBG PROJECT 安装未知来源应用，授权后返回此处继续安装。')
           : t('更新包会在校验 SHA-256 通过后才交给 Android 安装。')}
       </Text>
       {notes && (

@@ -1,3 +1,4 @@
+import { getActiveAgentProfile } from '@/mobile/agent-profile'
 import { experimental_createMCPClient as createMCPClient } from '@ai-sdk/mcp'
 import { Capacitor } from '@capacitor/core'
 import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js'
@@ -26,10 +27,13 @@ async function createClient(
   const desktop = desktopTransport(transportConfig)
   if (desktop) return createMCPClient({ name, transport: desktop })
   if (transportConfig.type === 'stdio') {
-    // stdio servers need a local process host; this app only speaks HTTP/SSE MCP.
-    throw new Error('stdio MCP transports are unavailable on mobile.')
+    // Only stdio services implemented by the native desktop bridge reach this client.
+    throw new Error('This app cannot launch this stdio command. Use a supported desktop service or a remote MCP URL.')
   }
   if (transportConfig.type === 'http') {
+    if ((transportConfig.oauth?.enabled && !authProvider) || transportConfig.secretRefs?.length) {
+      throw new Error('This connection requires credential resolution before it can start.')
+    }
     const safeFetch = createSafeMcpOAuthFetch()
     const createSseClient = async () => {
       const transport = new SSEClientTransport(new URL(transportConfig.url), {
@@ -246,6 +250,8 @@ export const mcpController = {
   getAvailableTools(sessionId?: string): ToolSet {
     const toolSet: ToolSet = {}
     for (const { instance, config } of this.servers.values()) {
+      const pairedProfile = config.id.startsWith('paired-agent:') ? config.id.slice('paired-agent:'.length) : undefined
+      if (pairedProfile !== undefined && pairedProfile !== getActiveAgentProfile().id) continue
       const mcpTools = instance.getAvailableTools()
       for (const [toolName, tool] of Object.entries(mcpTools)) {
         const rawExecute = tool.execute?.bind(tool)
@@ -261,6 +267,7 @@ export const mcpController = {
                 risk: 'dangerous',
               })
               if (!approved) return { error: 'user_denied_mcp_tool' }
+              if (pairedProfile !== undefined && pairedProfile !== getActiveAgentProfile().id) return { error: 'agent_profile_changed' }
               return await rawExecute?.(args, options)
             } catch (err) {
               // 返回而非抛出，否则会导致流程中断

@@ -143,7 +143,7 @@ export function AndroidPermissionWizard() {
           </div>
           <div>
             <Title order={3} size="h4">
-              {t('让 Yachiyo Claw 可以稳定运行')}
+              {t('让 SLBG PROJECT 可以稳定运行')}
             </Title>
             <Text c="dimmed" size="sm">
               {t('必选权限未完成时，本向导会在下次启动时再次出现。')}

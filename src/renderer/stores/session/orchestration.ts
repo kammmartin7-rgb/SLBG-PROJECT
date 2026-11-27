@@ -215,7 +215,7 @@ export async function orchestrateGeneration(
       }
     }
     const instructions = [
-      'Write replies and summaries in English unless the user requests another language. After using tools, explain the result in ordinary prose.',
+      'After using tools, explain the result in ordinary prose.',
       buildSharedUserContextPrompt(),
       relevantMemoryPrompt,
       toolInstructions,

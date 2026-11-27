@@ -455,7 +455,7 @@ public final class DownloadTransfer {
         File temporary = new File(directory, PLAN_TEMP_FILE);
         File destination = new File(directory, PLAN_FILE);
         try (FileOutputStream output = new FileOutputStream(temporary, false)) {
-            values.store(output, "Yachiyo Claw resumable download plan");
+            values.store(output, "SLBG PROJECT resumable download plan");
             output.getFD().sync();
         }
         try {

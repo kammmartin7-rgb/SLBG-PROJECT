@@ -22,6 +22,7 @@ vi.mock('@mantine/core', () => {
     <div className={className}>{children}</div>
   )
   return {
+    Badge: Container,
     Box: Container,
     Center: Container,
     Code: Container,
@@ -44,6 +45,7 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
 }))
 vi.mock('@tanstack/react-query', () => ({
+  useQuery: () => ({ data: ['gcd'] }),
   useQueryClient: () => ({ setQueryData: mocks.setQueryData }),
 }))
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t: (key: string) => key }) }))

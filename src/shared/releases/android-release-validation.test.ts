@@ -85,7 +85,7 @@ describe('Android update release verifier', () => {
           {
             name: path.basename(apk),
             digest: `sha256:${digest}`,
-            browser_download_url: `https://github.com/Wayne1145/yachiyo-claw/releases/download/v0.0.6/${path.basename(apk)}`,
+            browser_download_url: `https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v0.0.6/${path.basename(apk)}`,
           },
         ],
       })

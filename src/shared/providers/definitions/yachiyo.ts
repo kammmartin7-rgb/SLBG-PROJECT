@@ -12,7 +12,7 @@ export const YACHIYO_DEFAULT_MODEL = ''
 export const yachiyoProvider = defineProvider({
   id: ModelProviderEnum.Yachiyo,
   name: 'Yachiyo API',
-  description: 'Yachiyo Claw built-in OpenAI Chat Completions compatible service',
+  description: 'SLBG PROJECT built-in OpenAI Chat Completions compatible service',
   type: ModelProviderType.OpenAI,
   urls: {
     website: 'https://yachiyo8000.cn',

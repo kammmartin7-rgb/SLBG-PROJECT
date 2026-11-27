@@ -62,7 +62,7 @@ const english: Record<string, string> = {
   安装并切换第三方配色主题: 'Install and switch color themes',
   通用设置: 'General settings',
   '语言、外观与数据': 'Language, appearance, and data',
-  '关于 Yachiyo Claw': 'About Yachiyo Claw',
+  '关于 SLBG PROJECT': 'About SLBG PROJECT',
   版本与开源信息: 'Version and open-source information',
   开发者: 'Developer',
   插件运行时测试: 'Plugin runtime test',
@@ -167,9 +167,9 @@ const english: Record<string, string> = {
   执行审批: 'Execution approval',
   '手动审批会确认每次写操作；AI 预审只将高风险操作交给你；完全控制不会询问。':
     'Manual mode confirms each write; AI pre-approval asks only for high-risk actions; Full control does not ask.',
-  '任务完成后自动返回 Yachiyo Claw': 'Return to Yachiyo Claw when the task finishes',
-  'Agent 在其他应用操作完成后，将 Yachiyo Claw 重新切换到前台。':
-    'Bring Yachiyo Claw to the foreground after the Agent finishes in another app.',
+  '任务完成后自动返回 SLBG PROJECT': 'Return to SLBG PROJECT when the task finishes',
+  'Agent 在其他应用操作完成后，将 SLBG PROJECT 重新切换到前台。':
+    'Bring SLBG PROJECT to the foreground after the Agent finishes in another app.',
   当前对话已跳过后续审批: 'Further approvals are skipped for this conversation',
   恢复审批: 'Restore approvals',
   保存设置: 'Save settings',
@@ -232,9 +232,9 @@ const english: Record<string, string> = {
   '使用 Linux 开发环境镜像': 'Use Linux development mirrors',
   'Linux 基础系统、Python、Node.js 和 Android 开发工具优先通过中国大陆镜像下载。':
     'Prefer mainland China mirrors for the Linux base system, Python, Node.js, and Android development tools.',
-  '发现新版本 v{{version}}': 'Yachiyo Claw v{{version}} is available',
-  '请允许 Yachiyo Claw 安装未知来源应用，授权后返回此处继续安装。':
-    'Allow Yachiyo Claw to install unknown apps, then return here to continue.',
+  '发现新版本 v{{version}}': 'SLBG PROJECT v{{version}} is available',
+  '请允许 SLBG PROJECT 安装未知来源应用，授权后返回此处继续安装。':
+    'Allow SLBG PROJECT to install unknown apps, then return here to continue.',
   '更新包会在校验 SHA-256 通过后才交给 Android 安装。':
     'The package is passed to Android only after SHA-256 verification succeeds.',
   更新日志: 'Release notes',
@@ -314,7 +314,7 @@ const english: Record<string, string> = {
     'The package is not newer than the installed app, so the stale package was removed.',
   '更新包签名与当前应用不一致，安装已阻止。':
     'The package signature does not match this app. Installation was blocked.',
-  '更新包不是有效的 Yachiyo Claw 安装包。': 'The package is not a valid Yachiyo Claw update.',
+  '更新包不是有效的 SLBG PROJECT 安装包。': 'The package is not a valid SLBG PROJECT update.',
   '更新包完整性校验失败，请重新下载。': 'Update integrity verification failed. Download it again.',
   '已下载的更新包不存在或已失效，请重新下载。': 'The downloaded update is missing or expired. Download it again.',
   '无法写入更新包，请检查设备剩余空间。': 'Could not store the update. Check available device storage.',

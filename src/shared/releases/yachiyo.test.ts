@@ -36,17 +36,17 @@ describe('Yachiyo GitHub Releases update check', () => {
           JSON.stringify({
             tag_name: 'v0.0.5',
             name: 'Yachiyo Claw 0.0.5',
-            html_url: 'https://github.com/Wayne1145/yachiyo-claw/releases/tag/v0.0.5',
+            html_url: 'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/tag/v0.0.5',
             assets: [
               {
                 name: 'other.apk',
-                browser_download_url: 'https://github.com/Wayne1145/yachiyo-claw/releases/download/v0.0.5/other.apk',
+                browser_download_url: 'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v0.0.5/other.apk',
                 size: 10,
               },
               {
                 name: 'yachiyo-claw-release.apk',
                 browser_download_url:
-                  'https://github.com/Wayne1145/yachiyo-claw/releases/download/v0.0.5/yachiyo-claw-release.apk',
+                  'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v0.0.5/yachiyo-claw-release.apk',
                 size: 20,
                 digest: `sha256:${digest}`,
               },
@@ -63,7 +63,7 @@ describe('Yachiyo GitHub Releases update check', () => {
   })
 
   it('uses an APK sha256 sidecar when the asset digest is unavailable', async () => {
-    const base = 'https://github.com/Wayne1145/yachiyo-claw/releases/download/v0.0.5/'
+    const base = 'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v0.0.5/'
     const fetchImpl = vi.fn(
       async () =>
         new Response(
@@ -85,13 +85,13 @@ describe('Yachiyo GitHub Releases update check', () => {
 
   it('rejects non-GitHub, cleartext and unrelated release asset URLs', () => {
     expect(
-      isAllowedYachiyoReleaseAssetUrl('https://github.com/Wayne1145/yachiyo-claw/releases/download/v1/app.apk')
+      isAllowedYachiyoReleaseAssetUrl('https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v1/app.apk')
     ).toBe(true)
     expect(
-      isAllowedYachiyoReleaseAssetUrl('http://github.com/Wayne1145/yachiyo-claw/releases/download/v1/app.apk')
+      isAllowedYachiyoReleaseAssetUrl('http://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v1/app.apk')
     ).toBe(false)
     expect(
-      isAllowedYachiyoReleaseAssetUrl('https://example.com/Wayne1145/yachiyo-claw/releases/download/v1/app.apk')
+      isAllowedYachiyoReleaseAssetUrl('https://example.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v1/app.apk')
     ).toBe(false)
     expect(isAllowedYachiyoReleaseAssetUrl('https://github.com/other/repo/releases/download/v1/app.apk')).toBe(false)
   })
@@ -111,7 +111,7 @@ describe('Yachiyo GitHub Releases update check', () => {
               {
                 name: 'yachiyo-claw-release.apk',
                 browser_download_url:
-                  'https://github.com/Wayne1145/yachiyo-claw/releases/download/v0.0.6/yachiyo-claw-release.apk',
+                  'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v0.0.6/yachiyo-claw-release.apk',
               },
             ],
           }),
@@ -123,7 +123,7 @@ describe('Yachiyo GitHub Releases update check', () => {
   })
 
   it('skips an unverifiable preferred APK in favor of a verifiable release APK', async () => {
-    const base = 'https://github.com/Wayne1145/yachiyo-claw/releases/download/v0.0.6/'
+    const base = 'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/download/v0.0.6/'
     const digest = 'c'.repeat(64)
     const fetchImpl = vi.fn(
       async () =>

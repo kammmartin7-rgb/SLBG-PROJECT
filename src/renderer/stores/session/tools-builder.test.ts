@@ -291,6 +291,14 @@ describe('buildToolsForSession interactive camera tool', () => {
       })
       expect(withCamera.tools).toHaveProperty('camera_capture')
       expect(withCamera.instructions).toContain('camera_capture')
+      const approval = await import('@/mobile/agent-approval')
+      const response = vi.spyOn(approval, 'requestAgentApproval').mockResolvedValue(true)
+      try {
+        expect(await withCamera.tools.camera_capture.execute!({}, { toolCallId: 'fixture', messages: [] }))
+          .toMatchObject({ width: 640, height: 480 })
+      } finally {
+        response.mockRestore()
+      }
     } finally {
       unregisterCameraCaptureProvider(sessionId)
     }
@@ -339,6 +347,43 @@ describe('buildToolsForSession combined internal and phone-control Agent', () =>
     expect(result.instructions).not.toContain('sandbox_bash')
   })
 
+  it('initializes installed plugin tools when building an Agent chat', async () => {
+    const manager = await import('@/plugins/plugin-manager')
+    const init = vi.spyOn(manager, 'initPluginTools')
+    try {
+      await buildToolsForSession(model, { messages: [] })
+      expect(init).not.toHaveBeenCalled()
+      await buildToolsForSession(model, { messages: [], featureOptions: { 'core-agent': { agentMode: true } } })
+      expect(init).toHaveBeenCalledOnce()
+    } finally {
+      init.mockRestore()
+    }
+  })
+
+  it('dispatches all three mobile skill actions through the enabled skill controller', async () => {
+    const { skillsController } = await import('@/packages/skills/controller')
+    const skill = { ...makeSkill('fixture', 'Fixture'), scriptExecutionEnabled: true }
+    vi.spyOn(skillsController, 'discoverSkills').mockResolvedValue([skill])
+    vi.spyOn(skillsController, 'loadSkill').mockResolvedValue({ metadata: skill, body: 'Fixture instructions' })
+    vi.spyOn(skillsController, 'executeScript').mockResolvedValue({ success: true, stdout: 'fixture', stderr: '', exitCode: 0 })
+    const save = vi.spyOn(skillsController, 'saveSkill').mockResolvedValue({ success: true, skillName: 'fixture' })
+    try {
+      const { toolsetContextFromLegacyOptions, registerBuiltinToolsets } = await import('@/features/builtin-toolsets')
+      const { buildRegisteredToolsets } = await import('@/features/toolset-registry')
+      registerBuiltinToolsets()
+      const { tools } = await buildRegisteredToolsets(toolsetContextFromLegacyOptions(model, {
+        messages: [], sandboxEnabled: true, enabledSkillNames: ['fixture'],
+      }, 'mobile', new Set(['skills'])))
+      const call = { toolCallId: 'fixture', messages: [] }
+      expect(await tools.load_skill.execute!({ name: 'fixture' }, call)).toHaveProperty('instructions', 'Fixture instructions')
+      expect(await tools.execute_skill_script.execute!({ skill_name: 'fixture', script_name: 'test' }, call)).toHaveProperty('stdout', 'fixture')
+      await tools.write_skill.execute!({ name: 'fixture', description: 'Fixture', instructions: 'Fixture instructions' }, call)
+      expect(save).toHaveBeenCalledOnce()
+    } finally {
+      vi.restoreAllMocks()
+    }
+  })
+
   it('adds host terminal tools only to explicit Agent runs', async () => {
     const chat = await buildToolsForSession(model, { webBrowsing: false, messages: [] })
     const agent = await buildToolsForSession(model, {
@@ -352,6 +397,12 @@ describe('buildToolsForSession combined internal and phone-control Agent', () =>
     expect(agent.tools).toHaveProperty('agent_complete')
     expect(agent.tools).toHaveProperty('agent_blocked')
     expect(agent.instructions).toContain('host-managed tool loop')
+    const call = { toolCallId: 'fixture', messages: [] }
+    expect(await agent.tools.agent_environment_status.execute!({}, call)).toHaveProperty('summary')
+    const end = { summary: 'The fixture passed.', evidence: ['fixture result'] }
+    expect(await agent.tools.agent_complete.execute!(end, call)).toHaveProperty('summary', end.summary)
+    expect(await agent.tools.agent_blocked.execute!({ ...end, blocker_code: 'fixture', user_action: 'Retry.' }, call))
+      .toHaveProperty('summary', end.summary)
   })
 
   it('registers the reference-based controlled browser workflow for internal Agents', async () => {

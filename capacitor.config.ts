@@ -2,7 +2,7 @@ import type { CapacitorConfig } from '@capacitor/cli'
 
 const config: CapacitorConfig = {
   appId: 'io.github.yachiyoclaw',
-  appName: 'Yachiyo Claw',
+  appName: 'SLBG PROJECT',
   webDir: 'dist/renderer',
   server: {
     androidScheme: 'https',

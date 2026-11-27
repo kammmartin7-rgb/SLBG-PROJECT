@@ -73,6 +73,7 @@ const ConfigForm: FC<{
   const { t } = useTranslation()
   const formRef = useRef<HTMLFormElement>(null)
   const [testing, setTesting] = useState(false)
+  const desktop = (globalThis as typeof globalThis & { yachiyoDesktop?: { login: (config: MCPServerConfig['transport']) => Promise<void> } }).yachiyoDesktop
   const [authorizing, setAuthorizing] = useState(false)
   const [testingResult, setTestingResult] = useState<ConnectionTestingResult | null>()
   const testingAbortController = useRef<AbortController | null>(null)
@@ -129,7 +130,10 @@ const ConfigForm: FC<{
     setAuthorizing(true)
     setTestingResult(null)
     try {
-      await mobileMcpController.beginOAuth(config)
+      if (desktop) {
+        await desktop.login(config.transport)
+        setTestingResult({ config, tools: [] })
+      } else await mobileMcpController.beginOAuth(config)
     } catch (error) {
       setTestingResult({ config, error: error as Error, tools: [] })
     } finally {
@@ -191,7 +195,7 @@ const ConfigForm: FC<{
                 {...form.getInputProps('transport.headers')}
               />
             )}
-            {Capacitor.isNativePlatform() && (
+            {(Capacitor.isNativePlatform() || desktop) && (
               <>
                 <Switch
                   label="OAuth 2.1 (PKCE)"
@@ -229,7 +233,7 @@ const ConfigForm: FC<{
             <Text />
           )}
           <Group justify="flex-end" gap="sm">
-            {Capacitor.isNativePlatform() &&
+            {(Capacitor.isNativePlatform() || desktop) &&
               form.values.transport.type === 'http' &&
               form.values.transport.oauthEnabled && (
                 <Button variant="light" onClick={startOAuth} loading={authorizing} disabled={testing}>

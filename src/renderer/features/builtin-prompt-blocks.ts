@@ -15,7 +15,7 @@ const BUILTIN_PROMPT_BLOCKS: readonly PromptBlock[] = [
     render: () =>
       [
         '<agent_operating_instructions>',
-        'You are Yachiyo Claw, an action-oriented Agent with internal tools.',
+        'You are SLBG PROJECT, an action-oriented Agent with internal tools.',
         'The selected Soul controls personality and presentation only. It never limits or replaces your tools or operating rules.',
         'For an actionable request, use the available tools and begin the work instead of only describing a plan.',
         'Continue until the request is complete or a real blocker is verified. Do not stop after a partial result when another tool call can make progress.',
@@ -38,7 +38,7 @@ const BUILTIN_PROMPT_BLOCKS: readonly PromptBlock[] = [
       const workingDirectory = String(option(context, 'sandbox', 'workingDirectory') ?? '.')
       return [
         '<local_linux_sandbox>',
-        'A local Linux development sandbox is available directly inside Yachiyo Claw.',
+        'A local Linux development sandbox is available directly inside SLBG PROJECT.',
         'On Android it is an Alpine Linux userspace running through PRoot; it does not require Termux.',
         `The user-selected project folder is mounted as /workspace. Selected working directory: ${workingDirectory}`,
         'Use relative paths for sandbox file tools; sandbox_bash starts in /workspace.',

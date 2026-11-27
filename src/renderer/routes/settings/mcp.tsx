@@ -1,3 +1,4 @@
+import { DesktopPairing } from '@/components/settings/mcp/DesktopPairing'
 import { SettingsPage, SettingsSection } from '@/components/settings/SettingsPage'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { zodValidator } from '@tanstack/zod-adapter'
@@ -53,6 +54,7 @@ export function RouteComponent() {
         </SettingsSection>
       )}
       <SettingsSection>
+        <DesktopPairing />
         <CustomServersSection installConfig={installConfig} />
       </SettingsSection>
     </SettingsPage>

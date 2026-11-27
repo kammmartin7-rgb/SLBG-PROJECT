@@ -39,6 +39,10 @@ exports.installDeviceTools = function(win) {
     if (event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame ||
         !event.senderFrame.url.startsWith('yachiyo://app/')) throw Error('Invalid caller')
     if (typeof id !== 'string' || !id.length || id.length > 180) throw Error('Missing conversation')
+    if (action === 'run_workspace_code') {
+      return require('./code-workspace.cjs').runCode(require('electron').app.getPath('userData'), id, args, confirm)
+    }
+    if (action === 'metis_latest_block') return require('./metis.cjs').metisBlock()
     if (action.startsWith('browser_')) {
       if (action === 'browser_navigate') {
         const url = new URL(args.url)
@@ -78,6 +82,11 @@ exports.installDeviceTools = function(win) {
     if (action === 'adb_devices') return { devices: await run(['devices','-l']) }
     if (!/^[a-zA-Z0-9._:-]{1,128}$/.test(args.serial || '')) throw Error('Select a serial from adb_devices.')
     const target = ['-s',args.serial]
+    if (action === 'adb_screenshot') {
+      await confirm('Share the current screen of ' + args.serial + ' with the model?')
+      const png = await run([...target, 'exec-out', 'screencap', '-p'], true)
+      return { mediaType: 'image/png', data: png.toString('base64') }
+    }
     if (action === 'adb_device_info') return { model: (await run([...target,'shell','getprop','ro.product.model'])).trim() }
     if (action === 'adb_ui_tree') {
       await confirm('Read the current screen on ' + args.serial + '?')

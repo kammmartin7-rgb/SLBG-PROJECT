@@ -7,7 +7,7 @@ import { basename, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const MAX_APK_BYTES = 512 * 1024 * 1024
-const OFFICIAL_DOWNLOAD_PREFIX = 'https://github.com/wayne1145/yachiyo-claw/releases/download/'
+const OFFICIAL_DOWNLOAD_PREFIX = 'https://github.com/kammmartin7-rgb/slbg-project/releases/download/'
 
 function fail(message) {
   throw new Error(message)
