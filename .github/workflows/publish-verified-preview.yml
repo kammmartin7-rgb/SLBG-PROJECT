@@ -1,0 +1,50 @@
+name: Publish verified SLBG 0.0.31 preview
+on:
+  push:
+    branches: [release/publish-0.0.31-preview]
+permissions:
+  actions: read
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      SOURCE: a97815c10dfb22026649b7955e8de8cbcea30513
+      BUILD: '45971515357'
+      RELEASE_ID: '460376809'
+      TAG: v0.0.31-rc.2
+      APK: SLBG-PROJECT-0.0.31-debug.apk
+    steps:
+      - name: Verify build, source, release and artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..75}; do
+            gh api "repos/$GH_REPO/actions/runs/$BUILD" > run.json
+            jq -e --arg source "$SOURCE" '.head_sha == $source and .event == "push"' run.json
+            if jq -e '.status == "completed"' run.json; then break; fi
+            sleep 8
+          done
+          jq -e '.conclusion == "success"' run.json
+          gh api "repos/$GH_REPO/releases/$RELEASE_ID" > release.json
+          jq -e '.prerelease and (.tag_name == "v0.0.31-rc.1" or .tag_name == "v0.0.31-rc.2") and any(.assets[]; .name == "SLBG-PROJECT-0.0.31-Intel-Mac.zip" and .digest == "sha256:30fd4fc03e7ce808535f49546c38b438e7d72ee20c7b9b4973148dee2b38c8a9")' release.json
+          gh run download "$BUILD" --name SLBG-PROJECT-Android-17 --dir package
+          mv package/SLBG-PROJECT.apk "$APK"
+          apptool="$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort -V | tail -1)"
+          "$apptool" dump badging "$APK" > badging.txt
+          head -1 badging.txt | grep -F "name='io.github.yachiyoclaw' versionCode='31' versionName='0.0.31'"
+          sha256sum "$APK" > "$APK.sha256"
+      - name: Point the preview at the verified source and attach Android
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/$GH_REPO/git/ref/tags/$TAG" >/dev/null 2>&1; then
+            gh api -X POST "repos/$GH_REPO/git/refs" -f "ref=refs/tags/$TAG" -f "sha=$SOURCE"
+          fi
+          test "$(gh api "repos/$GH_REPO/git/ref/tags/$TAG" --jq '.object.sha')" = "$SOURCE"
+          gh api -X PATCH "repos/$GH_REPO/releases/$RELEASE_ID" -f "tag_name=$TAG" -f "target_commitish=$SOURCE" -F prerelease=true -f make_latest=false --silent
+          gh release upload "$TAG" "$APK" "$APK.sha256"
+          gh release view "$TAG" --json tagName,isPrerelease,assets --jq '{tagName,isPrerelease,assets:[.assets[].name]}'
