@@ -1,4 +1,4 @@
-name: Verify packaged clients
+name: SLBG PROJECT device checks
 on: workflow_call
 permissions:
   contents: read

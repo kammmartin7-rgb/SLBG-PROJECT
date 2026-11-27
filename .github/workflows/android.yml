@@ -1,4 +1,4 @@
-name: Android CI
+name: SLBG PROJECT Android
 
 on:
   push:
