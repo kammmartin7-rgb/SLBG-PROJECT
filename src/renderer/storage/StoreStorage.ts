@@ -49,6 +49,7 @@ export default class StoreStorage extends BaseStorage {
   private debounceQueue = new Map<string, DebouncedFunc<(key: string, value: unknown) => void>>()
 
   public async setItem<T>(key: string, value: T): Promise<void> {
+    if (key === StorageKey.Settings) return this.setItemNow(key, value)
     let debounced = this.debounceQueue.get(key)
     if (!debounced) {
       debounced = debounce(this.setItemNow.bind(this), 500, { maxWait: 2000 })

@@ -2,6 +2,7 @@ import { Theme } from '@shared/types'
 import { z } from 'zod'
 import { ErrorBoundary } from '@/components/common/ErrorBoundary'
 import Toasts from '@/components/common/Toasts'
+import { AgentApprovalDialog } from '@/components/yachiyo/AgentApprovalDialog'
 import { AndroidAppShell } from '@/components/yachiyo/AndroidAppShell'
 import { MobileUpdateDialog } from '@/components/yachiyo/MobileUpdateDialog'
 import useAppTheme from '@/hooks/useAppTheme'
@@ -228,6 +229,7 @@ function Root() {
       dir={language === 'ar' ? 'rtl' : 'ltr'}
     >
       {!useAndroidAppShell && <BackgroundImageOverlay />}
+      {!useAndroidAppShell && <AgentApprovalDialog />}
       {useAndroidAppShell ? (
         <AndroidAppShell>
           <ErrorBoundary name="main">

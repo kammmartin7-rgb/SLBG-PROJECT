@@ -5,6 +5,7 @@ test -f dist/renderer/index.html || { echo 'Run pnpm build:web first.' >&2; exit
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 cp desktop/package.json desktop/main.cjs desktop/preload.cjs desktop/device-tools.cjs desktop/code-workspace.cjs LICENSE THIRD_PARTY_NOTICES.md "$stage/"
+node_modules/.bin/esbuild desktop/kali-status.mjs --bundle --platform=node --format=esm --outfile="$stage/kali-status.mjs" --banner:js='import {createRequire} from "node:module"; const require=createRequire(import.meta.url);'
 node_modules/.bin/esbuild desktop/math.mjs --bundle --platform=node --format=cjs --outfile="$stage/math.cjs"
 node_modules/.bin/esbuild desktop/connections.cjs --bundle --platform=node --external:electron --outfile="$stage/connections.cjs"
 node_modules/.bin/esbuild desktop/fast-chat.cjs --bundle --platform=node --outfile="$stage/fast-chat.cjs"
@@ -24,5 +25,5 @@ if [ -d "$PWD/.cache/math-wheels" ]; then
   set -- "--extra-resource=$math_root/math-libraries" "$@"
 fi
 "$packager" "$stage" 'SLBG PROJECT' --platform=darwin --arch="${YACHIYO_ARCH:-$(node -p 'process.arch')}" \
-  '--asar.unpack={math.cjs,discrete.py}' --electron-version=45.4.1 --app-bundle-id=io.github.yachiyoclaw.desktop \
+  '--asar.unpack={math.cjs,discrete.py,kali-status.mjs}' --electron-version=45.4.1 --app-bundle-id=io.github.yachiyoclaw.desktop \
   --out="${YACHIYO_OUTPUT:-$PWD/dist/desktop}" --overwrite "$@"

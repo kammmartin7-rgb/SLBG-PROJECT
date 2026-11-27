@@ -1,7 +1,7 @@
 import type { JSONRPCMessage, MCPTransport } from '@ai-sdk/mcp'
 import type { MCPServerConfig } from './types'
 
-type Service = 'learn' | 'math' | MCPServerConfig['transport']
+type Service = 'learn' | 'math' | 'kali-status' | MCPServerConfig['transport']
 interface DesktopBridge {
   open(service: Service): Promise<string>
   close(id: string): Promise<void>
@@ -23,7 +23,10 @@ export function desktopTransport(config: MCPServerConfig['transport']): MCPTrans
   if (config.type === 'stdio') {
     const issue = desktopCommandIssue(config)
     if (issue) throw Error(issue)
-    service = config.command === 'yachiyo-math' && !config.args.length && !Object.keys(config.env ?? {}).length ? 'math' : config
+    // Map legacy project-path diagnostics to the bundled, fixed read-only implementation.
+    if (config.command === 'node' && config.args.length === 1 && config.args[0].endsWith('/slbg/desktop/kali-status.mjs')
+      && !Object.keys(config.env ?? {}).length) service = 'kali-status'
+    else service = config.command === 'yachiyo-math' && !config.args.length && !Object.keys(config.env ?? {}).length ? 'math' : config
   } else if (config.oauth?.enabled) {
     if (config.secretRefs?.length || Object.keys(config.headers || {}).length) throw Error('Use OAuth without additional headers or secret references.')
     service = config

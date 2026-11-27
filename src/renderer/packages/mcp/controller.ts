@@ -78,6 +78,8 @@ export class MCPServer extends Emittery<{ status: MCPServerStatus }> {
   private _status: MCPServerStatus = { state: 'idle' }
   private client?: MCPClient
   private tools?: ToolSet
+  private stopped = false
+  private checking = false
 
   constructor(
     private readonly transportConfig: TransportConfig,
@@ -101,9 +103,14 @@ export class MCPServer extends Emittery<{ status: MCPServerStatus }> {
     }
     this.status = { state: 'starting' }
     try {
-      this.client = await createClient(this.transportConfig, 'yachiyo-mcp-client', this.authProvider)
-      this.tools = await this.client.tools()
+      const client = await createClient(this.transportConfig, 'yachiyo-mcp-client', this.authProvider)
+      if (this.stopped) { await client.close(); return }
+      this.client = client
+      this.tools = await client.tools()
+      if (this.stopped) return
     } catch (err) {
+      await this.client?.close().catch(() => undefined)
+      this.client = undefined
       console.error('mcp:client:start')
       this.status = { state: 'idle', error: (err as Error).message }
       return
@@ -111,10 +118,32 @@ export class MCPServer extends Emittery<{ status: MCPServerStatus }> {
     this.status = { state: 'running' }
   }
 
+  async reconnectIfNeeded() {
+    if (this.stopped || this.checking) return
+    const config = this.transportConfig
+    // Never replay a user-declined program launch or open an interactive OAuth flow on a timer.
+    const bundled = config.type === 'stdio' && !Object.keys(config.env ?? {}).length &&
+      ((config.command === 'yachiyo-math' && !config.args.length) ||
+       (config.command === 'node' && config.args.length === 1 && config.args[0].endsWith('/slbg/desktop/kali-status.mjs') && 'yachiyoDesktop' in globalThis))
+    if (!bundled && (config.type !== 'http' || config.oauth?.enabled || this.authProvider)) return
+    this.checking = true
+    try {
+      if (this.status.state === 'running' && this.client) {
+        try { await this.client.tools(); return } catch (error) {
+          if (this.stopped) return
+          await this.client.close().catch(() => undefined)
+          this.client = undefined
+          this.tools = undefined
+          this.status = { state: 'idle', error: String(error) }
+        }
+      }
+      if (!this.stopped && this.status.state === 'idle' &&
+          !/401|403|unauthori|forbidden|denied|declined/i.test(this.status.error ?? '')) await this.start()
+    } finally { this.checking = false }
+  }
+
   async stop() {
-    if (this.status.state !== 'running') {
-      return
-    }
+    this.stopped = true
     this.status = { state: 'stopping' }
     await this.client?.close()
     this.tools = undefined
@@ -265,6 +294,7 @@ export const mcpController = {
                 title: `MCP: ${config.name}/${toolName}`,
                 detail: JSON.stringify(args, null, 2).slice(0, 4_000),
                 risk: 'dangerous',
+                signal: options.abortSignal,
               })
               if (!approved) return { error: 'user_denied_mcp_tool' }
               if (pairedProfile !== undefined && pairedProfile !== getActiveAgentProfile().id) return { error: 'agent_profile_changed' }

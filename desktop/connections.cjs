@@ -13,7 +13,19 @@ exports.installConnections = function installConnections(win) {
     if (event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame ||
         !event.senderFrame.url.startsWith('yachiyo://app/')) throw Error('Invalid desktop caller')
   }
-  const { app } = require('electron')
+  const { app, safeStorage } = require('electron')
+  const vault = name => require('./profile-store.cjs').profileStore(app.getPath('userData'), safeStorage, name)
+  const oauthVault = process.platform === 'darwin' ? vault('mcp-oauth-v1.enc') : null
+  if (process.platform === 'darwin') {
+    const settings = vault('connection-settings-v1.enc')
+    ipcMain.handle('desktop-mcp:profile-read', event => { assertSender(event); return settings.read() })
+    ipcMain.handle('desktop-mcp:profile-write', (event, value, seedOnly) => {
+      assertSender(event)
+      if (typeof value !== 'string') throw Error('Invalid settings')
+      if (!seedOnly || !settings.exists()) settings.write(value)
+    })
+    ipcMain.handle('desktop-mcp:profile-clear', event => { assertSender(event); settings.clear() })
+  }
   const { mathPython, setupMath } = require('./math-setup.cjs')
   let installing
   ipcMain.handle('desktop-mcp:math-setup', async event => {
@@ -50,13 +62,19 @@ exports.installConnections = function installConnections(win) {
       if (choice.response !== 1) throw Error('Sign-in cancelled')
       await shell.openExternal(url)
     }
-    credentials.set(key, await login(config, openBrowser, net.fetch.bind(net)))
+    const credential = await login(config, openBrowser, net.fetch.bind(net))
+    if (oauthVault) oauthVault.write({ ...(oauthVault.read() || {}), [key]: credential })
+    credentials.set(key, credential)
   })
   ipcMain.handle('desktop-mcp:open', async (event, kind) => {
     assertSender(event)
     if (connections.size >= 16) throw Error('Desktop connection limit reached')
     let transport
-    if (kind === 'math') {
+    if (kind === 'kali-status') {
+      transport = new StdioClientTransport({ command: process.execPath,
+        args: [join(__dirname.replace(/app\.asar$/, 'app.asar.unpacked'), 'kali-status.mjs')],
+        env: { ELECTRON_RUN_AS_NODE: '1' }, stderr: 'ignore' })
+    } else if (kind === 'math') {
       transport = new StdioClientTransport({ command: process.execPath, args: [join(__dirname.replace(/app\.asar$/, 'app.asar.unpacked'), 'math.cjs')],
         env: { ELECTRON_RUN_AS_NODE: '1', PATH: [process.env.PATH, '/usr/local/bin', '/opt/homebrew/bin', '/usr/bin'].filter(Boolean).join(':'), YACHIYO_MATH_PYTHON: mathPython(app.getPath('userData')) }, stderr: 'ignore' })
     } else if (kind?.type === 'stdio') {
@@ -70,7 +88,7 @@ exports.installConnections = function installConnections(win) {
         fetch: (input, options) => net.fetch(input, { ...options, credentials: 'omit', redirect: 'error' })
       })
     } else if (kind?.type === 'http' && kind.oauth?.enabled) {
-      const credential = credentials.get(credentialKey(kind))
+      const credential = credentials.get(credentialKey(kind)) ?? oauthVault?.read()?.[credentialKey(kind)]
       if (!credential || (credential.expires && credential.expires <= Date.now())) throw Error('Sign in with OAuth to start this connection.')
       const resource = httpsUrl(kind.url)
       const Transport = kind.protocol === 'sse' ? SSEClientTransport : StreamableHTTPClientTransport
@@ -117,6 +135,6 @@ exports.installConnections = function installConnections(win) {
     workflows?.close()
     pairing?.close()
     cleanup()
-    for (const name of ['open', 'send', 'close', 'login', 'pair', 'math-setup']) ipcMain.removeHandler('desktop-mcp:' + name)
+    for (const name of ['open', 'send', 'close', 'login', 'pair', 'math-setup', 'profile-read', 'profile-write', 'profile-clear']) ipcMain.removeHandler('desktop-mcp:' + name)
   })
 }

@@ -2,6 +2,11 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('yachiyoDesktop', {
   ...(process.platform === 'darwin' && {
+    settingsBackup: {
+      read: () => ipcRenderer.invoke('desktop-mcp:profile-read'),
+      write: (value, seedOnly) => ipcRenderer.invoke('desktop-mcp:profile-write', value, seedOnly),
+      clear: () => ipcRenderer.invoke('desktop-mcp:profile-clear')
+    },
     startDictation: () => ipcRenderer.invoke('desktop:start-dictation')
   }),
   setupMath: () => ipcRenderer.invoke('desktop-mcp:math-setup'),

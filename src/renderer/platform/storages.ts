@@ -318,6 +318,17 @@ export class MobileSQLiteStorage implements Storage {
   }
 }
 
+interface SettingsBackup {
+  read(): Promise<string | null>
+  write(serialized: string, seedOnly?: boolean): Promise<void>
+  clear(): Promise<void>
+}
+
+function settingsBackup(key: string) {
+  if (key !== 'settings') return undefined
+  return (globalThis as typeof globalThis & { yachiyoDesktop?: { settingsBackup?: SettingsBackup } }).yachiyoDesktop?.settingsBackup
+}
+
 export class IndexedDBStorage implements Storage {
   private store = localforage.createInstance({ name: 'chatboxstore' })
 
@@ -329,13 +340,38 @@ export class IndexedDBStorage implements Storage {
     // 为什么序列化成 JSON？
     // 因为 IndexedDB 作为底层驱动时，可以直接存储对象，但是如果对象中包含函数或引用，将会直接报错
     try {
-      await this.store.setItem(key, JSON.stringify(value))
+      const serialized = JSON.stringify(value)
+      await this.store.setItem(key, serialized)
+      const backup = settingsBackup(key)
+      if (backup && value != null) await backup.write(serialized)
     } catch (error) {
       throw new Error(`Failed to store value for key "${key}": ${(error as Error).message}`)
     }
   }
   public async getStoreValue(key: string) {
-    const json = await this.store.getItem<string>(key)
+    const backup = settingsBackup(key)
+    let json: string | null
+    try {
+      json = await this.store.getItem<string>(key)
+      if (json) JSON.parse(json)
+    } catch (error) {
+      const saved = await backup?.read()
+      if (!saved) throw error
+      return JSON.parse(saved)
+    }
+    if (backup) {
+      if (!json || json === 'null') {
+        const saved = await backup.read()
+        if (saved) {
+          const restored = JSON.parse(saved)
+          await this.store.setItem(key, saved)
+          return restored
+        }
+      } else {
+        // Seed upgrades from the user's existing, authoritative IndexedDB settings.
+        await backup.write(json, true).catch(() => console.warn('Desktop settings backup unavailable'))
+      }
+    }
     if (!json) return null
     try {
       return JSON.parse(json)
@@ -345,6 +381,7 @@ export class IndexedDBStorage implements Storage {
     }
   }
   public async delStoreValue(key: string) {
+    await settingsBackup(key)?.clear()
     return await this.store.removeItem(key)
   }
   public async getAllStoreValues(): Promise<{ [key: string]: any }> {

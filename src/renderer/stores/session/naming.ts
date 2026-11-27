@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/react'
 import { ApiError, NetworkError } from '@shared/models/errors'
-import type { ModelProvider } from '@shared/types'
+import { type ModelProvider, ModelProviderEnum } from '@shared/types'
 import { createModel } from '@/adapters'
 import { languageNameMap } from '@/i18n/locales'
 import { generateText } from '@/packages/model-calls'
@@ -49,6 +49,10 @@ async function _generateName(sessionId: string, modifyName: (sessionId: string, 
       : {}),
   }
   try {
+    if (session.type !== 'picture' && settings.provider === ModelProviderEnum.Ollama && !globalSettings.threadNamingModel) {
+      await modifyName(sessionId, fallbackSessionName(session.messages))
+      return
+    }
     const model = await createModel(settings)
     const result = await generateText(
       model,

@@ -1,3 +1,4 @@
+import { formatKaliUptime, uptimeLanguage } from './kali-uptime'
 import { LEGACY_YACHIYO_SOUL, YACHIYO_SOUL } from '@shared/personas/yachiyo'
 import { getAgentSessionConfig } from '@/mobile/agent-session-config'
 import { buildContext } from '@shared/context'
@@ -202,6 +203,26 @@ export async function orchestrateGeneration(
     })
     const latestUserMessage = [...promptMsgs].reverse().find((message) => message.role === 'user')
     const latestUserText = latestUserMessage ? getMessageText(latestUserMessage, true, true) : ''
+    const language = latestUserMessage?.contentParts.every(part => part.type === 'text') && uptimeLanguage(latestUserText)
+    const statusToolName = 'mcp__kali_vm_status__kali_mcp_status'
+    const statusTool = tools?.[statusToolName]
+    if (language && statusTool?.execute) {
+      const toolCallId = uuidv4()
+      targetMsg = { ...targetMsg, cancel: () => controller.abort() }
+      updateStreamingCache(sessionId, targetMsg)
+      const result = await statusTool.execute({}, { toolCallId, messages: [], abortSignal: controller.signal })
+      controller.signal.throwIfAborted()
+      const failed = result instanceof Error || (result && typeof result === 'object' &&
+        (('error' in result && result.error) || ('isError' in result && result.isError)))
+      targetMsg = {
+        ...targetMsg, generating: false, cancel: undefined, status: [],
+        contentParts: [...infoParts, { type: 'tool-call', toolCallId, toolName: statusToolName, args: {}, state: failed ? 'error' : 'result', result },
+          { type: 'text', text: formatKaliUptime(result, language) }],
+        firstTokenLatency: Date.now() - startTime,
+      }
+      await persistStreamingMessage(sessionId, targetMsg, { refreshCounting: true })
+      return
+    }
     let relevantMemoryPrompt = ''
     if (latestUserText) {
       try {
@@ -292,14 +313,13 @@ export async function orchestrateGeneration(
         contentParts: [...infoParts, ...processorState.contentParts],
       }
 
-      const textLength = getMessageText(nextMsg, true, true).length
-      if (!firstTokenLatency && textLength > 0) {
+      if (firstTokenLatency === undefined && getMessageText(nextMsg, true, true).length > 0) {
         firstTokenLatency = Date.now() - startTime
       }
 
       targetMsg = {
         ...nextMsg,
-        status: textLength > 0 ? [] : nextMsg.status,
+        status: firstTokenLatency !== undefined ? [] : nextMsg.status,
         firstTokenLatency,
       }
 

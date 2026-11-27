@@ -43,6 +43,13 @@ initSettingsStore()
     ]
     console.info(`mcp bootstrap ${servers.length} servers, with license key: ${!!licenseKey}`)
     mcpController.bootstrap(servers)
+    const reconnect = () => {
+      if (document.visibilityState === 'hidden' || !navigator.onLine) return
+      for (const { instance } of mcpController.servers.values()) void instance.reconnectIfNeeded().catch(() => undefined)
+    }
+    window.addEventListener('online', reconnect)
+    document.addEventListener('visibilitychange', reconnect)
+    window.setInterval(reconnect, 60000)
     if (NODE_ENV === 'development') {
       monitorServerStatus()
     }

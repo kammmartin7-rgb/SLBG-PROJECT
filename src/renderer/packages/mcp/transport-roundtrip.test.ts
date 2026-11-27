@@ -48,6 +48,15 @@ it.each(cases)('lists and invokes a tool through $name', async ({ protocol, url,
     return new Response(null, { status: 202 })
   })
   const server = new MCPServer({ type: 'http', url, protocol, headers })
+  if (url === 'https://fixture.example/mcp' && protocol === 'streamable-http') {
+    const healthyFetch = globalThis.fetch
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('network offline')))
+    await server.start()
+    expect(server.status.state).toBe('idle')
+    vi.stubGlobal('fetch', healthyFetch)
+    await server.reconnectIfNeeded()
+    expect(server.status.state).toBe('running')
+  }
   try {
     await server.start()
     expect(server.status).toEqual({ state: 'running' })
