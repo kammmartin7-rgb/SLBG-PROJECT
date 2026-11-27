@@ -212,6 +212,18 @@ SLBG PROJECT does not merge the code of every referenced project directly. The t
 | [Hugging Face Hub](https://huggingface.co/) | Local-model search, metadata, and weight downloads |
 | [ModelScope](https://modelscope.cn/) | Local-model search, metadata, and weight downloads |
 
+### Local forensics references
+
+The [Awesome OSINT Arsenal catalog](https://github.com/rawfilejson/awesome-osint-arsenal/blob/2c6475a1d5b941cc598b3612419ef22e6d903ce8/tools.json) lists tools that can be used separately for manual analysis.
+
+| Tool | Local analysis |
+| --- | --- |
+| ExifTool | Inspect metadata in a local image or document. |
+| Autopsy | Review a local disk image. |
+| Wireshark | Inspect a previously saved packet capture. |
+
+Use SLBG chat to review a text report exported from one of these tools. Review the report for sensitive data before sharing it with a hosted model. This reference requires no MCP server or API key.
+
 ### Agent, interaction, and product-design references
 
 | Project | Reference area |
