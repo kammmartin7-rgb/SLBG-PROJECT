@@ -7,6 +7,17 @@ if (!app.commandLine.hasSwitch('user-data-dir')) {
   app.setPath('userData', join(app.getPath('appData'), 'Yachiyo Claw'))
 }
 
+// Each profile has one database writer, even when users launch different copies of the app.
+const ownsProfile = app.requestSingleInstanceLock()
+if (!ownsProfile) app.quit()
+app.on('second-instance', () => {
+  const win = BrowserWindow.getAllWindows()[0]
+  if (!win) return
+  if (win.isMinimized()) win.restore()
+  win.show()
+  win.focus()
+})
+
 const scheme = 'yachiyo'
 const origin = 'yachiyo://app'
 protocol.registerSchemesAsPrivileged([{
@@ -62,6 +73,7 @@ function openWindow() {
 }
 
 app.whenReady().then(() => {
+  if (!ownsProfile) return
   const root = resolve(app.getAppPath(), 'renderer')
   protocol.handle(scheme, async (request) => {
     const url = new URL(request.url)

@@ -27,7 +27,11 @@ jobs:
           export PATH="$ANDROID_HOME/platform-tools:$PATH"
           sudo chmod a+rw /dev/kvm
           "$sdk/sdkmanager" 'platform-tools' 'emulator' "$IMAGE"
-          echo no | "$sdk/avdmanager" create avd -n verify -k "$IMAGE"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_AVD_HOME"
+          echo no | "$sdk/avdmanager" create avd -n verify -k "$IMAGE" -p "$ANDROID_AVD_HOME/verify.avd"
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx verify
           adb start-server
           "$ANDROID_HOME/emulator/emulator" -avd verify -port 5554 -no-window -no-audio -no-snapshot -no-boot-anim -gpu software -partition-size 2048 >/tmp/emulator.log 2>&1 &
           emulator_pid=$!
