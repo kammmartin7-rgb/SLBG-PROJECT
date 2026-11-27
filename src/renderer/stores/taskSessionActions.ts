@@ -32,7 +32,7 @@ import { getAgentSessionConfig } from '@/mobile/agent-session-config'
 import { tryRunLocalAndroidRecipe } from '@/mobile/android-task-recipe'
 import { createAgentUsageLedger, resolveDefaultAgentPrice } from '@/mobile/agent-usage-ledger'
 import { createUsageTracker } from '@/mobile/usage-statistics'
-import { buildAgentIdentityPrompt } from '@/mobile/agent-profile'
+import { buildAgentIdentityPrompt, getActiveAgentProfile, skillsForAgent } from '@/mobile/agent-profile'
 import { buildRelevantLongTermMemoryPrompt, rememberDurableUserStatements } from '@/mobile/automatic-memory'
 import { getAgentRuntimeSettings } from '@/mobile/agent-runtime-settings'
 import { nextAgentStreamPart } from '@/mobile/agent-stream-watchdog'
@@ -381,11 +381,12 @@ async function generateTaskResponse(
         log.warn('Automatic memory update failed:', error)
       }
     }
+    const profile = getActiveAgentProfile()
     const systemMessage: Message = createMessage(
       'system',
       buildTaskSystemPrompt(workingDir, {
         desktopHost: Boolean(desktopBridge()),
-        agentIdentity: [buildAgentIdentityPrompt(), relevantMemoryPrompt].filter(Boolean).join('\n\n'),
+        agentIdentity: [buildAgentIdentityPrompt(profile), relevantMemoryPrompt].filter(Boolean).join('\n\n'),
         deviceAgent,
         enabledFeatureIds,
       }),
@@ -394,7 +395,9 @@ async function generateTaskResponse(
     const promptMessages = [systemMessage, ...filteredContext]
 
     const skillSettings = settingsStore.getState().getSettings().skills
-    const enabledSkillNames = enabledFeatureIds.has('skills') ? skillSettings.enabledSkillNames : []
+    const enabledSkillNames = enabledFeatureIds.has('skills')
+      ? skillsForAgent(skillSettings.enabledSkillNames, profile)
+      : []
     const inputSessionId = session?.linkedSessionId || taskId
     const uiState = uiStore.getState()
     const webBrowsing = uiState.sessionWebBrowsingMap[inputSessionId] ?? true
@@ -476,6 +479,7 @@ async function generateTaskResponse(
                   .filter(([, value]) => Boolean(value)),
               )
             : toolDefinitions
+          queryClient.setQueryData(['active-task-tools', taskId], Object.keys(filteredTools ?? {}).sort())
           const reservation = await usageLedger.reserve({
               provider,
               model: modelId,

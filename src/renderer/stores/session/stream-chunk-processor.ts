@@ -89,6 +89,7 @@ export async function processStreamChunk(
       break
     }
     case 'tool-result': {
+      currentTextPart = undefined
       const existing = contentParts.find((part) => part.type === 'tool-call' && part.toolCallId === chunk.toolCallId) as
         | MessageToolCallPart
         | undefined
@@ -99,6 +100,7 @@ export async function processStreamChunk(
       break
     }
     case 'tool-error': {
+      currentTextPart = undefined
       finalizeReasoningDuration(currentReasoningPart)
       const existing = contentParts.find((part) => part.type === 'tool-call' && part.toolCallId === chunk.toolCallId) as
         | MessageToolCallPart

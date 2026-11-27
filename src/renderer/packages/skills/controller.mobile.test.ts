@@ -149,6 +149,25 @@ describe('mobile Skills controller', () => {
     )
   })
 
+  it('installs a mixed-case GitHub skill on desktop and loads the same stored text', async () => {
+    const platform = (await import('@/platform')).default
+    const previous = platform.type
+    Object.defineProperty(platform, 'type', { configurable: true, value: 'web' })
+    try {
+      vi.stubGlobal('fetch', vi.fn()
+        .mockResolvedValueOnce(Response.json({ sha: 'b'.repeat(40) }))
+        .mockResolvedValueOnce(new Response('', { status: 404 }))
+        .mockResolvedValueOnce(Response.json({ tree: [{ path: 'Skill.md', type: 'blob' }] }))
+        .mockResolvedValueOnce(new Response('---\nname: reader\ndescription: Read text\n---\nSummarize text.')))
+      expect(await skillsController.installSkill('owner', 'repo', '')).toEqual({ success: true, skillName: 'reader' })
+      expect((await skillsController.loadSkill('reader'))?.body).toBe('Summarize text.')
+      expect(await skillsController.discoverSkills()).toHaveLength(1)
+    } finally {
+      Object.defineProperty(platform, 'type', { configurable: true, value: previous })
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('stores SkillHub content as declarative-only metadata', async () => {
     const bytes = new TextEncoder().encode('---\nname: reader\ndescription: Reads docs\n---\nRead only.').buffer
     state.downloadBytes = new Uint8Array(bytes)

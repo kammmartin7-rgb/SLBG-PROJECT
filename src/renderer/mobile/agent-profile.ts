@@ -8,6 +8,7 @@ export interface AgentProfile {
   id: string
   name: string
   soul: string
+  skillNames?: string[]
   /** @deprecated Migrated to shared-user-context and retained for stored-profile compatibility. */
   user?: string
   /** @deprecated Migrated to shared-user-context and retained for stored-profile compatibility. */
@@ -58,7 +59,7 @@ export function mergeImportedAgentProfiles(value: unknown): AgentProfileState {
   const imported = z.object({
     activeProfileId: z.string(),
     profiles: z.array(z.object({
-      id: z.string().min(1), name: z.string(), soul: z.string(),
+      id: z.string().min(1), name: z.string(), soul: z.string(), skillNames: z.array(z.string()).optional(),
       user: z.string().optional(), memory: z.string().optional(), builtin: z.boolean().optional(),
     })),
   }).parse(value)
@@ -75,6 +76,10 @@ export function mergeImportedAgentProfiles(value: unknown): AgentProfileState {
 export function getActiveAgentProfile(): AgentProfile {
   const state = getAgentProfileState()
   return state.profiles.find((profile) => profile.id === state.activeProfileId) || state.profiles[0]
+}
+
+export function skillsForAgent(enabled: string[], profile = getActiveAgentProfile()) {
+  return enabled.filter(name => profile.skillNames === undefined || profile.skillNames.includes(name))
 }
 
 export function buildAgentIdentityPrompt(profile = getActiveAgentProfile()): string {

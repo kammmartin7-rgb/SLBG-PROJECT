@@ -8,6 +8,7 @@ import { registerBuiltinFeatureLifecycles, type SandboxRunState } from '@/featur
 import { getEnabledFeatureIds } from '@/features/feature-runtime'
 import { beginAgentRun, type AgentRunLifecycleHandle } from '@/features/lifecycle-runner'
 import { getSession, updateSessionWithMessages } from '@/stores/chatStore'
+import { skillsForAgent } from './agent-profile'
 import { settingsStore } from '@/stores/settingsStore'
 import { buildToolsForSession } from '@/stores/session/tools-builder'
 import { getTaskSession, updateTaskSession } from '@/stores/taskSessionStore'
@@ -73,7 +74,7 @@ export async function prepareRealtimeContext(
         sandbox: { sandboxEnabled: sandbox },
         workspace: { sandboxEnabled: sandbox },
         skills: {
-          enabledSkillNames: agent ? settingsStore.getState().skills.enabledSkillNames : [],
+          enabledSkillNames: agent ? skillsForAgent(settingsStore.getState().skills.enabledSkillNames) : [],
           sandboxEnabled: sandbox,
         },
         'android-device': { deviceControlEnabled: agent && config.deviceControlEnabled },

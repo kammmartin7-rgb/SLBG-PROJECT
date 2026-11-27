@@ -1,3 +1,4 @@
+import { agentOutcomeText } from '@shared/utils/agent-outcome-text'
 import { createMessage, type Message } from '@shared/types'
 import { tool } from 'ai'
 import { z } from 'zod'
@@ -68,8 +69,8 @@ export function interAgentTools(caller: string, linkedChat?: string) {
         const text = last?.contentParts.flatMap(p => {
           if (p.type === 'text') return [p.text]
           if (p.type === 'tool-call' && p.state === 'result' && ['agent_complete','agent_blocked'].includes(p.toolName)) {
-            const summary = (p.result as {summary?: unknown} | null)?.summary
-            if (typeof summary === 'string') return [summary]
+            const summary = agentOutcomeText(p)
+            if (summary) return [summary]
           }
           return []
         }).join('\n')

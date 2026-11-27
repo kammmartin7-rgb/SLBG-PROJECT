@@ -82,6 +82,11 @@ exports.installDeviceTools = function(win) {
     if (action === 'adb_devices') return { devices: await run(['devices','-l']) }
     if (!/^[a-zA-Z0-9._:-]{1,128}$/.test(args.serial || '')) throw Error('Select a serial from adb_devices.')
     const target = ['-s',args.serial]
+    if (action === 'adb_screenshot') {
+      await confirm('Share the current screen of ' + args.serial + ' with the model?')
+      const png = await run([...target, 'exec-out', 'screencap', '-p'], true)
+      return { mediaType: 'image/png', data: png.toString('base64') }
+    }
     if (action === 'adb_device_info') return { model: (await run([...target,'shell','getprop','ro.product.model'])).trim() }
     if (action === 'adb_ui_tree') {
       await confirm('Read the current screen on ' + args.serial + '?')

@@ -1,4 +1,4 @@
-import { ActionIcon, Box, Button, Center, Code, Collapse, Flex, Loader, ScrollArea, Stack, Switch, Text } from '@mantine/core'
+import { ActionIcon, Badge, Box, Button, Center, Code, Collapse, Flex, Loader, ScrollArea, Stack, Switch, Text } from '@mantine/core'
 import { TASK_DEFAULT_DIRECTORY } from '@shared/constants/task'
 import type { Message } from '@shared/types'
 import { formatNumber } from '@shared/utils'
@@ -13,7 +13,7 @@ import {
   IconRocket,
   IconX,
 } from '@tabler/icons-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -137,6 +137,11 @@ function formatToolLabel(toolName: string, args: unknown): string {
 }
 
 function ToolResultDisplay({ tc }: { tc: ToolCallInfo }) {
+  if (tc.state === 'error') {
+    const error = tc.result as { error?: unknown } | null
+    const detail = typeof tc.result === 'string' ? tc.result : error?.error
+    return <Text size="xs" c="red">{typeof detail === 'string' ? detail : 'Tool call failed'}</Text>
+  }
   if (tc.state !== 'result' || tc.result === undefined) return null
 
   const result = tc.result
@@ -198,9 +203,12 @@ function ToolResultDisplay({ tc }: { tc: ToolCallInfo }) {
 }
 
 function ToolCallItem({ tc }: { tc: ToolCallInfo }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(tc.state === 'error')
+  useEffect(() => {
+    if (tc.state === 'error') setExpanded(true)
+  }, [tc.state])
   const label = formatToolLabel(tc.toolName, tc.args)
-  const hasResult = tc.state === 'result' && tc.result !== undefined
+  const hasResult = tc.state === 'error' || (tc.state === 'result' && tc.result !== undefined)
   const isRunning = tc.state === 'call'
   const isError = tc.state === 'error'
 
@@ -363,6 +371,7 @@ function TaskMessageBubble({ message, sessionName }: { message: Message; session
 function TaskChat({ session }: { session: NonNullable<ReturnType<typeof useTaskSessionRecord>['data']> }) {
   const modelRegistryVersion = useModelRegistryVersion()
   const inAndroidAppShell = useInAndroidAppShell()
+  const { data: activeToolNames } = useQuery<string[]>({ queryKey: ['active-task-tools', session.id], enabled: false })
   const [pcControl, setPcControl] = useState(() => getAgentSessionConfig(session.id).deviceControlEnabled)
   useEffect(() => setPcControl(getAgentSessionConfig(session.id).deviceControlEnabled), [session.id])
   const mobileAgentConfig = getAgentSessionConfig(session.id)
@@ -599,6 +608,14 @@ function TaskChat({ session }: { session: NonNullable<ReturnType<typeof useTaskS
       )}
       {!inAndroidAppShell && <Divider />}
 
+      {activeToolNames && activeToolNames.length > 0 && (
+        <details className="px-3">
+          <summary>{t('Active tools')} ({activeToolNames.length})</summary>
+          <Flex gap={4} wrap="wrap" mah={120} style={{ overflowY: 'auto' }}>
+            {activeToolNames.map(name => <Badge key={name} variant="light" tt="none">{name}</Badge>)}
+          </Flex>
+        </details>
+      )}
       <BlockCodeCollapsedStateProvider defaultCollapsed={false}>
         <ScrollArea
           flex={1}

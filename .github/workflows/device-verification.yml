@@ -28,9 +28,17 @@ jobs:
           sudo chmod a+rw /dev/kvm
           "$sdk/sdkmanager" 'platform-tools' 'emulator' "$IMAGE"
           echo no | "$sdk/avdmanager" create avd -n verify -k "$IMAGE"
-          "$ANDROID_HOME/emulator/emulator" -avd verify -no-window -no-audio -no-snapshot -gpu swiftshader_indirect >/tmp/emulator.log 2>&1 &
-          timeout 300 adb wait-for-device
-          timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]]; do sleep 2; done'
+          adb start-server
+          "$ANDROID_HOME/emulator/emulator" -avd verify -port 5554 -no-window -no-audio -no-snapshot -no-boot-anim -gpu software -partition-size 2048 >/tmp/emulator.log 2>&1 &
+          emulator_pid=$!
+          trap 'tail -100 /tmp/emulator.log; adb devices -l' ERR
+          export ANDROID_SERIAL=emulator-5554
+          for attempt in {1..180}; do
+            kill -0 "$emulator_pid"
+            if [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" = 1 ]]; then break; fi
+            sleep 3
+          done
+          test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = 1
           adb install -t SLBG-PROJECT.apk
           adb shell am start -W -n io.github.yachiyoclaw/.MainActivity
           sleep 10

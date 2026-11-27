@@ -33,7 +33,7 @@ function fixture() {
     exports, URL, process, require(name) {
       if (name === 'electron') return electron
       if (name === 'node:child_process') return {execFile: (path,args,opts,done) => {
-        calls.push(Array.from(args)); done(null,{stdout:'Pixel_8a'})
+        calls.push(Array.from(args)); done(null,{stdout:opts.encoding === 'buffer' ? Buffer.from('example') : 'Pixel_8a'})
       }}
       return require(name)
     },
@@ -50,6 +50,9 @@ test('device enumeration, serial targeting and denied tap', async () => {
   assert.deepEqual(f.calls,[['devices','-l'],['-s','test','shell','getprop','ro.product.model']])
   await assert.rejects(f.run('adb_tap',{serial:'test',x:4,y:5}),/declined/)
   f.allow()
+  const screenshot = await f.run('adb_screenshot',{serial:'test'})
+  assert.equal(screenshot.data,Buffer.from('example').toString('base64'))
+  assert.deepEqual(f.calls.at(-1),['-s','test','exec-out','screencap','-p'])
   await f.run('adb_tap',{serial:'test',x:4,y:5})
   assert.deepEqual(f.calls.at(-1),['-s','test','shell','input','tap','4','5'])
   await assert.rejects(f.invoke({},'chat','adb_devices',{}),/Invalid caller/)

@@ -298,6 +298,9 @@ const InputBox = forwardRef<InputBoxRef, InputBoxProps>(
     // messageInput lives inside the MessageInputField child component to avoid
     // re-rendering the entire InputBox (20+ hooks, 1300+ lines) on every keystroke.
     // The parent only keeps a ref to the latest text and a boolean for empty/non-empty.
+    const startDictation = (globalThis as typeof globalThis & {
+      yachiyoDesktop?: { startDictation?: () => Promise<void> }
+    }).yachiyoDesktop?.startDictation
     const messageInputFieldRef = useRef<MessageInputFieldRef>(null)
     const latestInputRef = useRef('')
     const [hasTextContent, setHasTextContent] = useState(false)
@@ -1867,6 +1870,26 @@ const InputBox = forwardRef<InputBoxRef, InputBoxProps>(
                     handleAttachLink={handleAttachLink}
                     t={t}
                   />
+
+                  {startDictation && (
+                    <Tooltip label="Dictate · הכתבה" position="top" withArrow>
+                      <ActionIcon
+                        variant="subtle"
+                        aria-label="Dictate · הכתבה"
+                        onMouseDown={event => event.preventDefault()}
+                        onClick={() => {
+                          const input = messageInputFieldRef.current?.getElement()
+                          if (!input || input.disabled || input.readOnly) return
+                          input.focus()
+                          void startDictation().catch(() =>
+                            toastActions.add('Open System Settings → Keyboard → Dictation to enable dictation.')
+                          )
+                        }}
+                      >
+                        <IconMicrophone size={toolbarIconSize} stroke={1.8} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
 
                   {enabledFeatureIds.has('mcp') && (
                     <MCPMenu>

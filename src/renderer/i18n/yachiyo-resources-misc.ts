@@ -1,4 +1,7 @@
 export const yachiyoMiscEnglish: Record<string, string> = {
+  'Use all enabled skills': 'Use all enabled skills',
+  'Skills for this agent': 'Skills for this agent',
+  'Active tools': 'Active tools',
   'Agent 循环保护': 'Agent loop protection',
   'Agent 操作审批': 'Agent action approval',
   '检测到 Agent 可能在重复相同操作，执行已暂停。':

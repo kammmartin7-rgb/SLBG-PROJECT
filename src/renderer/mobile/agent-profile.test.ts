@@ -52,3 +52,11 @@ it('imports a browser profile copy twice without changing the source or replacin
   expect(first.profiles.map(p => p.id)).toEqual(expect.arrayContaining(['desktop', 'browser']))
   expect(copy).toEqual(source)
 })
+
+it('restricts profile bindings to globally enabled skills, including an empty selection', async () => {
+  const { skillsForAgent } = await import('./agent-profile')
+  const profile = { id: 'a', name: 'A', soul: '' }
+  expect(skillsForAgent(['one'], profile)).toEqual(['one'])
+  expect(skillsForAgent(['one'], { ...profile, skillNames: [] })).toEqual([])
+  expect(skillsForAgent(['one'], { ...profile, skillNames: ['one', 'disabled'] })).toEqual(['one'])
+})

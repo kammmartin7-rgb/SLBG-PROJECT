@@ -11,7 +11,7 @@ it('dispatches each desktop chat tool through the desktop device bridge', async 
   const inputs = {
     run_workspace_code: { language: 'python', source: 'print(1)' }, metis_latest_block: {},
     browser_navigate: { url: 'https://example.org' }, browser_snapshot: {}, browser_click: { snapshot: 's', index: 1 },
-    adb_devices: {}, adb_device_info: { serial: 'fixture' }, adb_ui_tree: { serial: 'fixture' },
+    adb_devices: {}, adb_screenshot: { serial: 'fixture' }, adb_device_info: { serial: 'fixture' }, adb_ui_tree: { serial: 'fixture' },
     adb_tap: { serial: 'fixture', x: 1, y: 1 },
   }
   expect(Object.keys(tools).sort()).toEqual(Object.keys(inputs).sort())

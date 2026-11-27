@@ -199,9 +199,33 @@ function parseMobileSkill(content: string, fallbackName: string): { metadata: Sk
   return { metadata: { name, description: description.slice(0, 1024) }, body }
 }
 
-async function installMobileGitHubSkill(owner: string, repo: string, skillPath: string): Promise<SkillInstallResult> {
+async function installGitHubSkill(owner: string, repo: string, skillPath: string): Promise<SkillInstallResult> {
   const fallbackName = skillPath.replace(/^\/+|\/+$/g, '') || repo
   try {
+    if (platform.type !== 'mobile') {
+      let bytes = new Uint8Array()
+      const context = await prepareGitHubSkillInstall(owner, repo, skillPath, async url => {
+        const response = await fetch(url, { redirect: 'error' })
+        if (!response.ok || !response.body) throw new Error(`GitHub download failed (HTTP ${response.status})`)
+        const reader = response.body.getReader()
+        const chunks: Uint8Array<ArrayBuffer>[] = []
+        let size = 0
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          size += value.length
+          if (size > MAX_MOBILE_SKILL_BYTES) {
+            await reader.cancel()
+            throw new Error('Skill exceeds the download limit')
+          }
+          chunks.push(new Uint8Array(value))
+        }
+        if (!size) throw new Error('The Skill file is empty')
+        bytes = new Uint8Array(await new Blob(chunks).arrayBuffer())
+        return size
+      })
+      return { success: true, skillName: await installGitHubSkillBytes(context, bytes) }
+    }
     const context = await prepareGitHubSkillInstall(owner, repo, skillPath)
     const persisted = await persistPendingSkillInstall(context, true)
     return await runPendingSkillInstall(persisted, { wait: true, userInitiated: true })
@@ -257,7 +281,8 @@ async function checkMobileSkillUpdate(name: string): Promise<SkillUpdateResult> 
 async function prepareGitHubSkillInstall(
   owner: string,
   repo: string,
-  skillPath: string
+  skillPath: string,
+  probe = probePersistentDownloadSize,
 ): Promise<PendingGitHubSkillInstall> {
   if (!/^[A-Za-z0-9_.-]{1,100}$/.test(owner) || !/^[A-Za-z0-9_.-]{1,100}$/.test(repo)) {
     throw new Error('Invalid GitHub repository')
@@ -276,8 +301,18 @@ async function prepareGitHubSkillInstall(
   if (!commitResponse.ok) throw new Error(`GitHub revision lookup failed (HTTP ${commitResponse.status})`)
   const revision = String(((await commitResponse.json()) as { sha?: unknown }).sha || '').toLowerCase()
   if (!/^[a-f0-9]{40}$/.test(revision)) throw new Error('GitHub revision lookup returned an invalid commit')
-  const url = `https://raw.githubusercontent.com/${owner}/${repo}/${revision}/${normalizedPath ? `${normalizedPath}/` : ''}SKILL.md`
-  const sizeBytes = await probePersistentDownloadSize(url)
+  const baseUrl = `https://raw.githubusercontent.com/${owner}/${repo}/${revision}/${normalizedPath ? `${normalizedPath}/` : ''}`
+  let url = baseUrl + 'SKILL.md'
+  let sizeBytes: number
+  try {
+    sizeBytes = await probe(url)
+  } catch (error) {
+    const entries = await scanGitHubRepo(owner, repo, revision)
+    const entry = entries.find(candidate => candidate.path === normalizedPath && candidate.filename !== 'SKILL.md')
+    if (!entry) throw error
+    url = baseUrl + entry.filename
+    sizeBytes = await probe(url)
+  }
   const now = new Date().toISOString()
   return {
     schemaVersion: 1,
@@ -362,15 +397,16 @@ export function selectMarketplaceSkillPath(
   return candidates.length === 1 ? candidates[0].path : null
 }
 
-async function scanMobileGitHubRepo(owner: string, repo: string) {
-  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/HEAD?recursive=1`)
+async function scanGitHubRepo(owner: string, repo: string, revision = 'HEAD') {
+  const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${revision}?recursive=1`)
   if (!response.ok) throw new Error(`GitHub repository scan failed (HTTP ${response.status})`)
   const data = (await response.json()) as { tree?: Array<{ path: string; type: string }> }
   return (data.tree || [])
-    .filter((entry) => entry.type === 'blob' && (entry.path === 'SKILL.md' || entry.path.endsWith('/SKILL.md')))
+    .filter((entry) => entry.type === 'blob' && entry.path.split('/').at(-1)?.toLowerCase() === 'skill.md')
     .map((entry) => {
-      const path = entry.path === 'SKILL.md' ? '' : entry.path.slice(0, -'/SKILL.md'.length)
-      return { name: path.split('/').pop() || repo, path }
+      const path = entry.path.split('/').slice(0, -1).join('/')
+      const filename = entry.path.slice(path ? path.length + 1 : 0)
+      return { name: path.split('/').pop() || repo, path, filename }
     })
 }
 
@@ -776,46 +812,36 @@ interface SkillUpdateResult {
 
 export const skillsController = {
   async saveSkill(metadata: SkillMetadata, body: string): Promise<SkillInstallResult> {
-    if (platform.type !== 'mobile') {
-      return { success: false, skillName: metadata.name, error: 'Use the desktop skills directory' }
-    }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(metadata.name) || !metadata.description.trim() || !body.trim()) {
       return { success: false, skillName: metadata.name, error: 'Invalid skill metadata or body' }
     }
-    const current = (await readMobileSkills()).filter((skill) => skill.metadata.name !== metadata.name)
     const installedAt = new Date().toISOString()
-    current.push({ metadata, body: body.trim(), installedAt, executionMode: 'declarative', source: { type: 'local', installedAt } })
-    await writeMobileSkills(current)
+    await mutateMobileSkills(current => [...current.filter(skill => skill.metadata.name !== metadata.name),
+      { metadata, body: body.trim(), installedAt, executionMode: 'declarative', source: { type: 'local', installedAt } }])
     return { success: true, skillName: metadata.name }
   },
 
   async discoverSkills(): Promise<SkillInfo[]> {
-    if (platform.type === 'mobile') {
-      await resumePendingMobileSkillInstalls()
-      return (await readMobileSkills()).map((skill) => ({
-          ...skill.metadata,
-          path: `mobile://skills/${skill.metadata.name}`,
-          isBuiltin: false,
-          bodyTokenEstimate: Math.ceil(skill.body.length / 4),
-          source: skill.source || {
-            type: skill.repo ? 'github' : 'local',
-            repo: skill.repo,
-            installedAt: skill.installedAt,
-            skillPath: skill.skillPath,
-          },
-          scriptExecutionEnabled: skill.executionMode === 'script-enabled',
-          signatureVerified: skill.installRecord?.signatureVerified,
-        }))
-    }
-    return []
+    if (platform.type === 'mobile') await resumePendingMobileSkillInstalls()
+    return (await readMobileSkills()).map((skill) => ({
+      ...skill.metadata,
+      path: `${platform.type === 'mobile' ? 'mobile' : 'app'}://skills/${skill.metadata.name}`,
+      isBuiltin: false,
+      bodyTokenEstimate: Math.ceil(skill.body.length / 4),
+      source: skill.source || {
+        type: skill.repo ? 'github' : 'local',
+        repo: skill.repo,
+        installedAt: skill.installedAt,
+        skillPath: skill.skillPath,
+      },
+      scriptExecutionEnabled: skill.executionMode === 'script-enabled',
+      signatureVerified: skill.installRecord?.signatureVerified,
+    }))
   },
 
   async loadSkill(name: string): Promise<{ metadata: SkillMetadata; body: string } | null> {
-    if (platform.type === 'mobile') {
-      const skill = (await readMobileSkills()).find((candidate) => candidate.metadata.name === name)
-      return skill ? { metadata: skill.metadata, body: skill.body } : null
-    }
-    return null
+    const skill = (await readMobileSkills()).find(candidate => candidate.metadata.name === name)
+    return skill ? { metadata: skill.metadata, body: skill.body } : null
   },
 
   getSkillsDirectory(): Promise<string> {
@@ -896,44 +922,37 @@ export const skillsController = {
   },
 
   installSkill(owner: string, repo: string, skillPath: string): Promise<SkillInstallResult> {
-    if (platform.type === 'mobile') return installMobileGitHubSkill(owner, repo, skillPath)
-    return Promise.resolve({ success: false, skillName: skillPath, error: SKILLS_UNAVAILABLE })
+    return installGitHubSkill(owner, repo, skillPath)
   },
 
   async installMarketplaceSkill(skill: MarketplaceSkill): Promise<SkillInstallResult> {
-    if (platform.type === 'mobile') {
-      if (isSkillHubSkill(skill)) return installMobileSkillHubSkill(skill)
-      const location = parseMarketplaceGitHubLocation(skill.source)
-      if (!location) {
-        return { success: false, skillName: skill.name, error: '此 Skill 来源未提供可安装的 GitHub 仓库。' }
-      }
-      try {
-        const candidates = await scanMobileGitHubRepo(location.owner, location.repo)
-        const skillPath = selectMarketplaceSkillPath(skill, location, candidates)
-        if (skillPath === null) {
-          return { success: false, skillName: skill.name, error: '仓库中有多个 Skill，无法确定要安装的目录。' }
-        }
-        return installMobileGitHubSkill(location.owner, location.repo, skillPath)
-      } catch (error) {
-        return { success: false, skillName: skill.name, error: error instanceof Error ? error.message : String(error) }
-      }
+    if (isSkillHubSkill(skill)) {
+      if (platform.type === 'mobile') return installMobileSkillHubSkill(skill)
+      return { success: false, skillName: skill.name, error: 'This package requires Android. Choose a GitHub skill on desktop.' }
     }
-    return { success: false, skillName: skill.name, error: SKILLS_UNAVAILABLE }
+    const location = parseMarketplaceGitHubLocation(skill.source)
+    if (!location) {
+      return { success: false, skillName: skill.name, error: '此 Skill 来源未提供可安装的 GitHub 仓库。' }
+    }
+    try {
+      const candidates = await scanGitHubRepo(location.owner, location.repo)
+      const skillPath = selectMarketplaceSkillPath(skill, location, candidates)
+      if (skillPath === null) {
+        return { success: false, skillName: skill.name, error: '仓库中有多个 Skill，无法确定要安装的目录。' }
+      }
+      return installGitHubSkill(location.owner, location.repo, skillPath)
+    } catch (error) {
+      return { success: false, skillName: skill.name, error: error instanceof Error ? error.message : String(error) }
+    }
   },
 
   async deleteSkill(name: string): Promise<{ success: boolean; error?: string }> {
-    if (platform.type === 'mobile') {
-      await writeMobileSkills((await readMobileSkills()).filter((skill) => skill.metadata.name !== name))
-      return { success: true }
-    }
-    return { success: false, error: SKILLS_UNAVAILABLE }
+    await mutateMobileSkills(current => current.filter(skill => skill.metadata.name !== name))
+    return { success: true }
   },
 
   scanRepo(owner: string, repo: string): Promise<Array<{ name: string; path: string; description?: string }>> {
-    if (platform.type === 'mobile') {
-      return scanMobileGitHubRepo(owner, repo)
-    }
-    return Promise.resolve([])
+    return scanGitHubRepo(owner, repo)
   },
 
   checkForUpdate(name: string): Promise<SkillUpdateResult> {

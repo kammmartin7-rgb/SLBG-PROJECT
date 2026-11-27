@@ -1,4 +1,4 @@
-const { app, autoUpdater, BrowserWindow, dialog, net, protocol, session, shell } = require('electron')
+const { app, autoUpdater, BrowserWindow, dialog, ipcMain, Menu, net, protocol, session, shell } = require('electron')
 const { join, resolve, extname, sep } = require('node:path')
 const { pathToFileURL } = require('node:url')
 
@@ -106,6 +106,17 @@ app.whenReady().then(() => {
     try { return await net.fetch(pathToFileURL(file).href) } catch { return new Response(null, { status: 404 }) }
   })
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
+  if (process.platform === 'darwin') {
+    ipcMain.handle('desktop:start-dictation', event => {
+      const win = BrowserWindow.getFocusedWindow()
+      if (!win || event.sender !== win.webContents ||
+          event.senderFrame !== win.webContents.mainFrame ||
+          !event.senderFrame.url.startsWith(origin + '/')) {
+        throw new Error('Focus the chat window to start dictation.')
+      }
+      Menu.sendActionToFirstResponder('startDictation:')
+    })
+  }
   openWindow()
   void checkDesktopUpdate()
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) openWindow() })
