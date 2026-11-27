@@ -36,7 +36,7 @@ export const BuiltinServersSection: FC = () => {
   return (
     <>
       <Text size="sm" fw={600} mb={4}>
-        Hacker Tool {t('Builtin MCP Servers')}
+        SLBG PROJECT {t('Builtin MCP Servers')}
       </Text>
       <Text size="xs" c="chatbox-tertiary" mb={12}>
         {t('One-click MCP servers available to every user')}

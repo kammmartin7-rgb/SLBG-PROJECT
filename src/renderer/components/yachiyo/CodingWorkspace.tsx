@@ -806,7 +806,7 @@ function RunView({ projectId }: { projectId: string }) {
           </Text>
           {inspection.hostPackageBlocked && (
             <Alert color="red" mt="xs">
-              {t('禁止安装与 Hacker Tool 相同包名的 APK。')}
+              {t('禁止安装与 SLBG PROJECT 相同包名的 APK。')}
             </Alert>
           )}
           {!inspection.signatureMatchesInstalled && (

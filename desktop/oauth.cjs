@@ -27,7 +27,7 @@ async function login(config, openBrowser, fetchImpl) {
       return
     }
     const value = url.searchParams.get('code')
-    res.writeHead(200, { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' }).end('Return to Hacker Tool.')
+    res.writeHead(200, { 'Content-Type': 'text/plain', 'Cache-Control': 'no-store' }).end('Return to SLBG PROJECT.')
     if (value) resolveCode(value)
     else rejectCode(Error('Authorization declined'))
   })
@@ -36,7 +36,7 @@ async function login(config, openBrowser, fetchImpl) {
   const timeout = setTimeout(() => rejectCode(Error('Sign-in timed out')), 180000)
   const provider = {
     redirectUrl: redirect,
-    clientMetadata: { client_name: 'Hacker Tool', redirect_uris: [redirect.href], grant_types: ['authorization_code'], response_types: ['code'], token_endpoint_auth_method: 'none' },
+    clientMetadata: { client_name: 'SLBG PROJECT', redirect_uris: [redirect.href], grant_types: ['authorization_code'], response_types: ['code'], token_endpoint_auth_method: 'none' },
     state: () => state,
     clientInformation: () => registration,
     saveClientInformation: value => { registration = value },

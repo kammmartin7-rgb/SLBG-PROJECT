@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/brand/yachiyo-avatar.png" width="168" alt="Yachiyo Claw" />
+  <img src="assets/brand/yachiyo-avatar.png" width="168" alt="SLBG PROJECT" />
 </p>
 
-<h1 align="center">Yachiyo Claw</h1>
+<h1 align="center">SLBG PROJECT</h1>
 
 <p align="center">
   An open-source Android AI chat client, device agent, and Live2D real-time interaction app
@@ -22,7 +22,7 @@
   <a href="#features">Features</a> | <a href="#known-limitations">Limitations</a> | <a href="#agent-execution-model">Security model</a> | <a href="#build-locally">Build</a> | <a href="#credits-and-references">Credits</a>
 </p>
 
-Yachiyo Claw is an Android-first AI client. Building on Chatbox's multi-model conversations, it adds a device agent that runs inside the Android app, Live2D conversations, voice and camera input, character personas, on-device models and knowledge bases, Skills, MCP, shared conversations, and scheduled tasks.
+SLBG PROJECT is an Android-first AI client. Building on Chatbox's multi-model conversations, it adds a device agent that runs inside the Android app, Live2D conversations, voice and camera input, character personas, on-device models and knowledge bases, Skills, MCP, shared conversations, and scheduled tasks.
 
 It is designed for people who want to paste an API key and start using it, while offering Accessibility, Shizuku, and root execution backends for Android users who need device control.
 
@@ -64,7 +64,7 @@ This repository is maintained with assistance from Codex and written with assist
 - The Android MCP client supports protected-resource discovery, OAuth authorization code flow with PKCE, app deep-link callbacks, secure access-token and refresh-token storage, retry after refresh, and authenticated MCP requests.
 
 > [!WARNING]
-> PRoot is a userspace filesystem and process-environment compatibility layer, not a container, virtual machine, or kernel-level security boundary. Linux sandbox commands must still pass through the Yachiyo Claw Tool Broker, approval, path constraints, and audit layer. Do not treat PRoot as strong isolation for untrusted binaries.
+> PRoot is a userspace filesystem and process-environment compatibility layer, not a container, virtual machine, or kernel-level security boundary. Linux sandbox commands must still pass through the SLBG PROJECT Tool Broker, approval, path constraints, and audit layer. Do not treat PRoot as strong isolation for untrusted binaries.
 
 ### Android Agent
 
@@ -114,13 +114,13 @@ This repository is maintained with assistance from Codex and written with assist
 - Android CI includes TypeScript checks, foundation tests, native-log privacy checks, Gradle unit tests, and Debug APK builds.
 - Usage settings group reported tokens, cache usage and requests by period/category. Optional sub2api multiplier/balance queries show unknown when the upstream does not support or return the data.
 - Agent DOM browsing uses an offscreen WebView; a visible page opens only for explicit preview. This is not full desktop Chromium/Playwright.
-- Yachiyo Claw's chat, Interactive, Agent, permissions, local models, downloads, themes, plugins, and workspace pages can be switched fully to English. User-defined names and third-party content retain their original language.
+- SLBG PROJECT's chat, Interactive, Agent, permissions, local models, downloads, themes, plugins, and workspace pages can be switched fully to English. User-defined names and third-party content retain their original language.
 
 ## Known limitations
 
 - LiteRT-LM, llama.cpp, and MediaPipe download, loading, and invocation paths are connected, but system-level performance validation has not been completed across vendor SoCs and 1B-4B production weights for first-token latency, sustained generation rate, peak memory, thermal behavior, and long-session stability. Compatibility estimates are not a run guarantee.
 - GGUF supports CPU inference and Vulkan layer offload but still returns text after generation finishes. Local Agent tool calls depend on models reliably following a constrained structured protocol; no native token-by-token streaming tool events are available. Local embeddings are limited to MediaPipe Text Embedder-compatible `.tflite` models.
-- Weights, tokenizers, configurations, and derived content in model repositories remain subject to their own licenses, access restrictions, and terms. Users confirm applicable licenses before downloading or running them; Yachiyo Claw's GPLv3 does not cover third-party model weights.
+- Weights, tokenizers, configurations, and derived content in model repositories remain subject to their own licenses, access restrictions, and terms. Users confirm applicable licenses before downloading or running them; SLBG PROJECT's GPLv3 does not cover third-party model weights.
 - The PRoot sandbox does not provide kernel-level isolation. Skill scripts are consistently routed into it, but complex Python or Node dependencies must still be installed and managed by each Skill or project.
 - Headless Agent execution supports only the native runner's implemented provider protocols and tools. Approval, interactive permissions and foreground-only capabilities still require takeover; system force-stop and vendor background restrictions cannot be bypassed reliably.
 - In-app updates have passed production-signature continuity, increasing-version, and Android 12 overwrite-install verification. Android 11/13/15-16 device-matrix coverage remains pending.
@@ -184,11 +184,11 @@ For full environment instructions, see [BUILDING.md](docs/BUILDING.md). In a res
 
 ## Credits and references
 
-Yachiyo Claw does not merge the code of every referenced project directly. The tables below distinguish code foundations, dependencies in use, and product or architecture references; each project remains subject to its own license.
+SLBG PROJECT does not merge the code of every referenced project directly. The tables below distinguish code foundations, dependencies in use, and product or architecture references; each project remains subject to its own license.
 
 ### Code foundations and core ecosystem
 
-| Project | Use in Yachiyo Claw |
+| Project | Use in SLBG PROJECT |
 | --- | --- |
 | [chatboxai/chatbox](https://github.com/chatboxai/chatbox) | Upstream code foundation for conversations, providers, message rendering, settings, and the tool framework |
 | [ionic-team/capacitor](https://github.com/ionic-team/capacitor) | Bridge between Web/React and native Android capabilities |
@@ -198,7 +198,7 @@ Yachiyo Claw does not merge the code of every referenced project directly. The t
 
 ### Local models, documents, and Linux environment
 
-| Project | Use in Yachiyo Claw |
+| Project | Use in SLBG PROJECT |
 | --- | --- |
 | [google-ai-edge/LiteRT-LM](https://github.com/google-ai-edge/LiteRT-LM) | Android `.litertlm` model loading and on-device chat inference |
 | [ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp) | Android `.gguf` CPU inference and chat templates |
@@ -232,13 +232,13 @@ Yachiyo Claw does not merge the code of every referenced project directly. The t
 | [topjohnwu/libsu](https://github.com/topjohnwu/libsu) | Root Shell, RootService, and compatibility approaches for multiple root managers |
 | [MuntashirAkon/libadb-android](https://github.com/MuntashirAkon/libadb-android) | On-device Android ADB capability research |
 
-Third-party servers in the in-app recommended MCP directory come from the upstream Chatbox registry. They are not installed automatically with Yachiyo Claw. Read each repository's license, permission, and privacy information before enabling one.
+Third-party servers in the in-app recommended MCP directory come from the upstream Chatbox registry. They are not installed automatically with SLBG PROJECT. Read each repository's license, permission, and privacy information before enabling one.
 
 ## Name and asset notice
 
 The name and visual inspiration come from Yachiyo Tsukimi in *Chao Shi Kong Hui Ye Ji*. The character avatar and Live2D model in this repository are used only to demonstrate character interaction in this open-source project. Rights to the associated character, images, and model assets remain with their respective authors and rights holders. See [NOTICE](src/renderer/public/live2d/NOTICE.md) for Live2D runtime and model notices.
 
-Yachiyo Claw is an independent open-source project. It has no affiliation with or official partnership with the film's production companies, distributors, Netflix, Live2D Inc., or any other rights holder.
+SLBG PROJECT is an independent open-source project. It has no affiliation with or official partnership with the film's production companies, distributors, Netflix, Live2D Inc., or any other rights holder.
 
 ## License
 

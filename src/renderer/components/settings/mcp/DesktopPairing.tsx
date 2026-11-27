@@ -34,7 +34,7 @@ export function DesktopPairing() {
     if (url.protocol !== 'https:' || !url.hostname.endsWith('.ts.net') || url.username || url.password ||
       url.pathname !== '/mcp' || url.search || url.hash) throw Error('Enter your HTTPS Tailscale Serve URL ending in /mcp.')
     const profile = getActiveAgentProfile().id
-    const client = new Client({ name: 'Hacker Tool', version: '1' })
+    const client = new Client({ name: 'SLBG PROJECT', version: '1' })
     try {
       await client.connect(new StreamableHTTPClientTransport(url, { fetch: createSafeMcpOAuthFetch(),
         requestInit: { headers: { Authorization: 'Bearer ' + secret.trim() } } }), { timeout: 15000 })

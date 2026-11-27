@@ -255,7 +255,7 @@ public final class YachiyoSandboxService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         return new NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("Yachiyo Claw")
+            .setContentTitle("SLBG PROJECT")
             .setContentText(text)
             .setOngoing(true)
             .setContentIntent(pendingIntent)

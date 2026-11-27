@@ -330,8 +330,8 @@ export function AgentSessionControls({
             />
             {deviceControlEnabled && !desktopBridge() && (
               <Switch
-                label={t('任务完成后自动返回 Hacker Tool')}
-                description={t('Agent 在其他应用操作完成后，将 Hacker Tool 重新切换到前台。')}
+                label={t('任务完成后自动返回 SLBG PROJECT')}
+                description={t('Agent 在其他应用操作完成后，将 SLBG PROJECT 重新切换到前台。')}
                 checked={returnToApp}
                 onChange={(event) => {
                   const checked = event.currentTarget.checked

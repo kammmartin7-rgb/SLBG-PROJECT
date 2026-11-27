@@ -54,10 +54,10 @@ final class YachiyoSchedulerNotification {
         );
         return new NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_popup_reminder)
-            .setContentTitle("Yachiyo Claw")
+            .setContentTitle("SLBG PROJECT")
             .setContentText(
                 ready
-                    ? "A scheduled task is ready. Open Yachiyo Claw to continue."
+                    ? "A scheduled task is ready. Open SLBG PROJECT to continue."
                     : "Preparing a scheduled task."
             )
             .setContentIntent(pendingIntent)
@@ -75,7 +75,7 @@ final class YachiyoSchedulerNotification {
         if (manager == null) return;
         NotificationChannel channel = new NotificationChannel(
             CHANNEL_ID,
-            "Yachiyo Claw background tasks",
+            "SLBG PROJECT background tasks",
             CHANNEL_IMPORTANCE
         );
         channel.setDescription("Background task status; no task content is included.");

@@ -5,7 +5,7 @@ import { downloadPluginPackage, resolvePluginPackageSource } from './package-sou
 import { unpackPluginArchive } from './unpack'
 
 const live = it.runIf(process.env.YACHIYO_LIVE_IMPORTS === '1')
-const repo = 'https://github.com/kammmartin7-rgb/Yachiyo-claw-stronger'
+const repo = 'https://github.com/kammmartin7-rgb/SLBG-PROJECT'
 const revision = 'af449c3602647f7b7db1513296693a5bc7778641'
 
 async function load(url: string) {

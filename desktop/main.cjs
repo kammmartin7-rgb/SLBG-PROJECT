@@ -14,11 +14,11 @@ protocol.registerSchemesAsPrivileged([{
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }])
 
-const releasePage = 'https://github.com/kammmartin7-rgb/Yachiyo-claw-stronger/releases/latest'
+const releasePage = 'https://github.com/kammmartin7-rgb/SLBG-PROJECT/releases/latest'
 
 async function checkDesktopUpdate() {
   if (!app.isPackaged || process.platform !== 'darwin') return
-  const feed = 'https://update.electronjs.org/kammmartin7-rgb/Yachiyo-claw-stronger/darwin-' +
+  const feed = 'https://update.electronjs.org/kammmartin7-rgb/SLBG-PROJECT/darwin-' +
     process.arch + '/' + encodeURIComponent(app.getVersion())
   try {
     // Developer ID builds can install verified updates when the user quits normally.
@@ -37,7 +37,7 @@ async function checkDesktopUpdate() {
     const update = await response.json()
     if (typeof update.url !== 'string') return
     const choice = await dialog.showMessageBox({
-      type: 'info', message: 'A Hacker Tool update is available.',
+      type: 'info', message: 'A SLBG PROJECT update is available.',
       buttons: ['Open download page', 'Later'], cancelId: 1, defaultId: 1
     })
     if (choice.response === 0) await shell.openExternal(releasePage)
@@ -48,7 +48,7 @@ async function checkDesktopUpdate() {
 
 function openWindow() {
   const win = new BrowserWindow({
-    title: 'Hacker Tool',
+    title: 'SLBG PROJECT',
     width: 1150, height: 800, minWidth: 520, minHeight: 500,
     webPreferences: { preload: join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false }
   })

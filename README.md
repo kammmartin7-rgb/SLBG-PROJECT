@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/brand/yachiyo-avatar.png" width="168" alt="Yachiyo Claw" />
+  <img src="assets/brand/yachiyo-avatar.png" width="168" alt="SLBG PROJECT" />
 </p>
 
-<h1 align="center">Yachiyo Claw</h1>
+<h1 align="center">SLBG PROJECT</h1>
 
 <p align="center">
   面向 Android 的开源 AI 聊天、手机 Agent 与 Live2D 实时交互应用
@@ -26,7 +26,7 @@ See [docs/STRONGER_VERSION.md](docs/STRONGER_VERSION.md) for the v0.0.27 stabili
   <a href="#已实现功能">功能</a> | <a href="#尚未完成与已知边界">已知边界</a> | <a href="#agent-执行结构">执行结构</a> | <a href="#本地构建">本地构建</a> | <a href="#引用与致谢">致谢</a>
 </p>
 
-Yachiyo Claw 是一个 Android 优先的 AI 客户端。它在 Chatbox 的多模型对话基础上加入了直接运行于 Android 应用中的设备 Agent、Live2D 交互式对话、语音与摄像头输入、角色人格、端侧模型与知识库、Skills、MCP、共享会话和定时任务。
+SLBG PROJECT 是一个 Android 优先的 AI 客户端。它在 Chatbox 的多模型对话基础上加入了直接运行于 Android 应用中的设备 Agent、Live2D 交互式对话、语音与摄像头输入、角色人格、端侧模型与知识库、Skills、MCP、共享会话和定时任务。
 
 项目面向希望“粘贴 API Key 后直接使用”的用户，同时为熟悉 Android 的用户提供无障碍、Shizuku 和 root 三种设备执行后端。
 本仓库由 Codex 辅助管理，由 GPT 5.6 Sol 和 Claude Fable 5 辅助编写。
@@ -67,7 +67,7 @@ Yachiyo Claw 是一个 Android 优先的 AI 客户端。它在 Chatbox 的多模
 - Android MCP 客户端支持受保护资源发现、OAuth 授权码 + PKCE、应用深链回调、access token/refresh token 安全存储、刷新后重试和已鉴权的 MCP 请求。
 
 > [!WARNING]
-> PRoot 是用户态文件系统与进程环境兼容层，不是容器、虚拟机或内核级安全边界。Linux 沙箱中的命令仍必须经过 Yachiyo Claw 的 Tool Broker、审批、路径限制和审计；不要把 PRoot 当作可以安全运行任意不可信二进制的强隔离环境。
+> PRoot 是用户态文件系统与进程环境兼容层，不是容器、虚拟机或内核级安全边界。Linux 沙箱中的命令仍必须经过 SLBG PROJECT 的 Tool Broker、审批、路径限制和审计；不要把 PRoot 当作可以安全运行任意不可信二进制的强隔离环境。
 
 手机端目标矩阵、恢复语义和 APK 交付限制见 [移动端 Vibe Coding](docs/MOBILE_VIBE_CODING.md)。
 
@@ -121,13 +121,13 @@ Yachiyo Claw 是一个 Android 优先的 AI 客户端。它在 Chatbox 的多模
 - Android CI 包含 TypeScript 检查、基础测试、原生日志隐私检查、Gradle 单测和 Debug APK 构建。
 - 设置中的用量统计按时间和类别查看已报告的 token、缓存命中与请求情况；提供商支持时可查询 sub2api 倍率/余额。不支持或未返回的数据标记为未知，不视为零。
 - Agent 浏览器的 DOM 操作使用离屏 WebView；只有用户明确预览时打开可见网页。它不是完整桌面 Chromium/Playwright。
-- Yachiyo Claw 自定义的聊天、交互式、Agent、权限、本地模型、下载、主题、插件和工作区页面支持完整英文切换；用户自定义名称和第三方内容保持原文。
+- SLBG PROJECT 自定义的聊天、交互式、Agent、权限、本地模型、下载、主题、插件和工作区页面支持完整英文切换；用户自定义名称和第三方内容保持原文。
 
 ## 尚未完成与已知边界
 
 - LiteRT-LM、llama.cpp 与 MediaPipe 的下载、加载和调用链路已经接通，但尚未对不同厂商 SoC、1B-4B 真实权重的首 token 延迟、持续生成速度、内存峰值、温升和长会话稳定性完成系统性能验证；兼容性估算不等同于运行保证。
 - GGUF 已支持 CPU 与 Vulkan 分层卸载，但仍在生成完成后一次性返回文本；本地 Agent 工具调用依赖模型稳定遵循受限结构化协议，尚未提供逐 token 原生流式工具事件。本地 embedding 仍仅面向 MediaPipe Text Embedder 兼容的 `.tflite` 模型。
-- 模型仓库中的权重、Tokenizer、配置和衍生内容继续受各自许可证、访问限制及使用条款约束。下载或运行前由用户确认相关许可证，Yachiyo Claw 的 GPLv3 不会覆盖第三方模型权重。
+- 模型仓库中的权重、Tokenizer、配置和衍生内容继续受各自许可证、访问限制及使用条款约束。下载或运行前由用户确认相关许可证，SLBG PROJECT 的 GPLv3 不会覆盖第三方模型权重。
 - PRoot 沙箱尚未提供内核级隔离；Skill 脚本已统一进入该沙箱，但复杂 Python/Node 依赖仍由具体 Skill 或项目自行安装和管理。
 - 无界面 Agent 目前仅支持原生运行器已有的提供商协议与工具集合；审批、交互式权限和前台专属能力仍需应用接管，不能保证绕过系统强行停止或厂商后台限制。
 - 应用内更新已通过正式签名连续性、版本递增和 Android 12 覆盖安装校验；Android 11/13/15-16 设备矩阵仍需继续补测。
@@ -192,7 +192,7 @@ android/app/build/outputs/apk/debug/app-debug.apk
 
 ## 引用与致谢
 
-Yachiyo Claw 没有把所有参考项目的代码直接合并进来。下表区分了代码基础、已使用依赖与产品/架构参考；各项目继续遵循各自许可证。
+SLBG PROJECT 没有把所有参考项目的代码直接合并进来。下表区分了代码基础、已使用依赖与产品/架构参考；各项目继续遵循各自许可证。
 
 ### 代码基础与核心生态
 
@@ -241,13 +241,13 @@ Yachiyo Claw 没有把所有参考项目的代码直接合并进来。下表区�
 | [topjohnwu/libsu](https://github.com/topjohnwu/libsu)                           | Root Shell、RootService 与多 Root 管理器兼容思路 |
 | [MuntashirAkon/libadb-android](https://github.com/MuntashirAkon/libadb-android) | Android 设备内 ADB 能力调研                      |
 
-应用内 MCP 推荐目录中的第三方 Server 来自 Chatbox 上游注册表，它们不会随 Yachiyo Claw 自动安装；实际启用时请分别阅读对应仓库的许可证、权限和隐私说明。
+应用内 MCP 推荐目录中的第三方 Server 来自 Chatbox 上游注册表，它们不会随 SLBG PROJECT 自动安装；实际启用时请分别阅读对应仓库的许可证、权限和隐私说明。
 
 ## 名称与素材说明
 
 名称和视觉灵感来自《超时空辉夜姬》中的月见八千代。仓库中的角色头像和 Live2D 模型仅用于本开源项目的角色交互演示，相关角色、图像和模型素材的权利归其各自作者与权利方所有。Live2D 运行库及模型说明见 [NOTICE](src/renderer/public/live2d/NOTICE.md)。
 
-Yachiyo Claw 是独立的开源项目，与影片制作方、发行方、Netflix、Live2D Inc. 或其他权利方不存在隶属或官方合作关系。
+SLBG PROJECT 是独立的开源项目，与影片制作方、发行方、Netflix、Live2D Inc. 或其他权利方不存在隶属或官方合作关系。
 
 ## License
 

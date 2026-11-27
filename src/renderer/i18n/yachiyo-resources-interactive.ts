@@ -99,7 +99,7 @@ export const yachiyoInteractiveEnglish: Record<string, string> = {
   可选: 'Optional',
   去设置: 'Open settings',
   基础权限设置: 'Basic permissions',
-  '让 Hacker Tool 可以稳定运行': 'Let Hacker Tool run reliably',
+  '让 SLBG PROJECT 可以稳定运行': 'Let SLBG PROJECT run reliably',
   '必选权限未完成时，本向导会在下次启动时再次出现。':
     'This guide will appear again on the next launch until required permissions are ready.',
   '{{feature}} 原生组件': '{{feature}} native component',

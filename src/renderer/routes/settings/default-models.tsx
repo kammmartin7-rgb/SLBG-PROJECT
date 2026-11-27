@@ -20,7 +20,7 @@ export function RouteComponent() {
   const { setSettings, ...settings } = useSettingsStore((state) => state)
   const productCopy = (key: string) => {
     const translated = String(t(key))
-    return translated.replaceAll('Chatbox', 'Yachiyo Claw')
+    return translated.replaceAll('Chatbox', 'SLBG PROJECT')
   }
   const ocrAutoText = t('None')!
 

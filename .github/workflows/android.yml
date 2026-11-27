@@ -370,11 +370,14 @@ jobs:
 
           "${apksigner}" verify --verbose --print-certs "${apk}"
 
+      - name: Name the verified package
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk SLBG-PROJECT.apk
+
       - name: Upload debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: yachiyo-claw-debug-${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: SLBG-PROJECT-Android-${{ github.run_number }}
+          path: SLBG-PROJECT.apk
           if-no-files-found: error
           retention-days: 14
           compression-level: 0

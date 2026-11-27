@@ -6,7 +6,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 
 const app = resolve(process.argv[2])
 const math = new StdioClientTransport({
-  command: join(app, 'Contents/MacOS/Hacker Tool'),
+  command: join(app, 'Contents/MacOS/SLBG PROJECT'),
   args: [join(app, 'Contents/Resources/app.asar.unpacked/math.cjs')],
   env: { ELECTRON_RUN_AS_NODE: '1' }
 })

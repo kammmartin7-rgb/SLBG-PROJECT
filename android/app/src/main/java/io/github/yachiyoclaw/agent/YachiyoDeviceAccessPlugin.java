@@ -1000,7 +1000,7 @@ public class YachiyoDeviceAccessPlugin extends Plugin {
         statusCapsule.setPadding(dp(14), dp(8), dp(8), dp(8));
         statusCapsule.setBackground(capsuleBackground());
         TextView status = new TextView(getContext());
-        status.setText("Yachiyo Claw is operating your device");
+        status.setText("SLBG PROJECT is operating your device");
         status.setTextColor(Color.WHITE);
         status.setTextSize(13);
         statusCapsule.addView(status);

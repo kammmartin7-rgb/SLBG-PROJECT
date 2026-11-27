@@ -16,15 +16,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          github-token: ${{ github.token }}
-          run-id: ${{ github.run_id }}
-          pattern: yachiyo-claw-debug-*
+          pattern: SLBG-PROJECT-Android-*
           merge-multiple: true
       - name: Install and open the built APK on the emulator
         shell: bash
         run: |
           set -euo pipefail
-          test -s app-debug.apk
+          test -s SLBG-PROJECT.apk
           sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
           sudo chmod a+rw /dev/kvm
           "$sdk/sdkmanager" 'emulator' "$IMAGE"
@@ -32,7 +30,7 @@ jobs:
           "$ANDROID_HOME/emulator/emulator" -avd verify -no-window -no-audio -no-snapshot -gpu swiftshader_indirect >/tmp/emulator.log 2>&1 &
           timeout 300 adb wait-for-device
           timeout 300 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" = 1 ]]; do sleep 2; done'
-          adb install -t app-debug.apk
+          adb install -t SLBG-PROJECT.apk
           adb shell am start -W -n io.github.yachiyoclaw/.MainActivity
           sleep 10
           adb shell pidof io.github.yachiyoclaw
@@ -80,16 +78,16 @@ jobs:
           python -m pip download --only-binary=:all: -d .cache/math-wheels sympy==1.14.0 networkx==3.5 z3-solver==4.13.4.0
           npm install --prefix .tools/desktop @electron/packager@20.3.0
           bash scripts/package-macos.sh
-          app="dist/desktop/Hacker Tool-darwin-x64/Hacker Tool.app"
+          app="dist/desktop/SLBG PROJECT-darwin-x64/SLBG PROJECT.app"
           python -m venv /tmp/yachiyo-offline-math
           /tmp/yachiyo-offline-math/bin/python -I "$app/Contents/Resources/app.asar.unpacked/discrete.py" integer_solution '{"equations":[[1,1,7],[1,-1,1]]}' | grep -F '{"status": "sat", "x": 4, "y": 3}'
-          ditto -c -k --keepParent "$app" Hacker-Tool-Intel.zip
+          ditto -c -k --keepParent "$app" SLBG-PROJECT-Intel.zip
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: Hacker-Tool-Intel-Mac
-          path: Hacker-Tool-Intel.zip
+          name: SLBG-PROJECT-Intel-Mac
+          path: SLBG-PROJECT-Intel.zip
       - name: Exercise live documentation search from the Intel runner
-        run: node scripts/check-macos-mcp.mjs "dist/desktop/Hacker Tool-darwin-x64/Hacker Tool.app"
+        run: node scripts/check-macos-mcp.mjs "dist/desktop/SLBG PROJECT-darwin-x64/SLBG PROJECT.app"
   live-metis:
     runs-on: ubuntu-24.04
     timeout-minutes: 5

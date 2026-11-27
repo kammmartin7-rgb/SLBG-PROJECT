@@ -128,7 +128,7 @@ export function SettingsNavigation({ compact = false }: { compact?: boolean }) {
           <p>{t('试试模型、主题、语音或备份')}</p>
         </div>
       )}
-      {!compact && <p className="settings-home-footer">Hacker Tool</p>}
+      {!compact && <p className="settings-home-footer">SLBG PROJECT</p>}
     </div>
   )
 }

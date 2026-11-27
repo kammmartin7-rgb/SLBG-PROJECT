@@ -43,22 +43,22 @@ public final class YachiyoUpdateWorker extends Worker {
             if (!directory.isDirectory() && !directory.mkdirs()) throw new IllegalStateException("update_storage_unavailable");
             File partial = new File(directory, "update-" + version + ".apk.partial");
             final String expectedDigest = digest;
-            DownloadTaskStore.update(getApplicationContext(), taskId, "update", "Yachiyo Claw " + version, "downloading", 0, size, 0, null);
-            setForegroundAsync(DownloadNotifications.foreground(getApplicationContext(), taskId, "正在下载 Yachiyo Claw 更新", 0, size));
+            DownloadTaskStore.update(getApplicationContext(), taskId, "update", "SLBG PROJECT " + version, "downloading", 0, size, 0, null);
+            setForegroundAsync(DownloadNotifications.foreground(getApplicationContext(), taskId, "正在下载 SLBG PROJECT 更新", 0, size));
             DownloadTransfer.download(partial, size, digest, YachiyoDownloadSettingsPlugin.threads(getApplicationContext()),
                 YachiyoDownloadSettingsPlugin.retryCount(getApplicationContext()),
                 (start, end) -> open(apkUrl, start, end),
                 (bytes, total, speed) -> {
-                    DownloadTaskStore.update(getApplicationContext(), taskId, "update", "Yachiyo Claw " + version, "downloading", bytes, total, speed, null);
-                    DownloadNotifications.show(getApplicationContext(), taskId, "正在下载 Yachiyo Claw 更新", bytes, total, speed);
-                    setForegroundAsync(DownloadNotifications.foreground(getApplicationContext(), taskId, "正在下载 Yachiyo Claw 更新", bytes, total, speed));
+                    DownloadTaskStore.update(getApplicationContext(), taskId, "update", "SLBG PROJECT " + version, "downloading", bytes, total, speed, null);
+                    DownloadNotifications.show(getApplicationContext(), taskId, "正在下载 SLBG PROJECT 更新", bytes, total, speed);
+                    setForegroundAsync(DownloadNotifications.foreground(getApplicationContext(), taskId, "正在下载 SLBG PROJECT 更新", bytes, total, speed));
                 }, () -> isStopped() || DownloadTaskStore.shouldStop(getApplicationContext(), taskId));
             UpdatePackageVerifier.requireTrusted(getApplicationContext(), partial);
             File verified = new File(directory, "update-" + version + ".apk");
             Files.move(partial.toPath(), verified.toPath(), StandardCopyOption.REPLACE_EXISTING);
             getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(PREF_FILE, verified.getAbsolutePath()).putString(PREF_DIGEST, expectedDigest).apply();
-            DownloadTaskStore.update(getApplicationContext(), taskId, "update", "Yachiyo Claw " + version, "completed", size, size, 0, null);
-            DownloadNotifications.complete(getApplicationContext(), taskId, "Yachiyo Claw " + version);
+            DownloadTaskStore.update(getApplicationContext(), taskId, "update", "SLBG PROJECT " + version, "completed", size, size, 0, null);
+            DownloadNotifications.complete(getApplicationContext(), taskId, "SLBG PROJECT " + version);
             return Result.success();
         } catch (Exception error) {
             String reason = safe(error);
@@ -72,8 +72,8 @@ public final class YachiyoUpdateWorker extends Worker {
                 DownloadTransfer.discard(partial);
                 bytes = 0;
             }
-            DownloadTaskStore.update(getApplicationContext(), taskId, "update", "Yachiyo Claw 更新", status, bytes, size, 0, reason);
-            if ("failed".equals(status)) DownloadNotifications.failed(getApplicationContext(), taskId, "Yachiyo Claw 更新");
+            DownloadTaskStore.update(getApplicationContext(), taskId, "update", "SLBG PROJECT 更新", status, bytes, size, 0, reason);
+            if ("failed".equals(status)) DownloadNotifications.failed(getApplicationContext(), taskId, "SLBG PROJECT 更新");
             else DownloadNotifications.cancel(getApplicationContext(), taskId);
             return "failed".equals(status) ? Result.failure() : Result.success();
         }
