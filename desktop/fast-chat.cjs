@@ -18,6 +18,40 @@ exports.compatiblePayload = function compatiblePayload(payload, toolTurn) {
   return payload
 }
 
+// When a user explicitly asks for the numeric tool output, relay that output
+// after the actual tool call. A second inference cannot add information.
+exports.directNumericReply = function directNumericReply(payload) {
+  const messages = payload.messages
+  if (!Array.isArray(messages) || payload.response_format) return null
+  const reply = messages.at(-1)
+  const request = messages.at(-2)
+  const user = messages.findLast(m => m.role === 'user')
+  const prompt = typeof user?.content === 'string' ? user.content :
+    Array.isArray(user?.content) ? user.content.map(p => p.text || '').join(' ') : ''
+  if (!/(?:reply|return|respond) (?:only (?:with )?|with )?(?:the )?(?:returned number|tool result|number only)[.!\s]*$/i.test(prompt)) return null
+  const calls = request?.tool_calls
+  if (reply?.role !== 'tool' || request?.role !== 'assistant' || calls?.length !== 1 ||
+      !reply.tool_call_id || reply.tool_call_id !== calls[0].id || !calls[0].function?.name?.startsWith('mcp__')) return null
+  let output = reply.content
+  if (typeof output === 'string') {
+    try { output = JSON.parse(output) } catch { return null }
+  }
+  if (output?.isError) return null
+  const parts = output?.content ?? output
+  const value = typeof parts === 'number' || typeof parts === 'string' ? String(parts) :
+    Array.isArray(parts) && parts.length === 1 && parts[0].type === 'text' ? parts[0].text : ''
+  if (typeof value !== 'string' || !/^-?\d+(?:\.\d+)?$/.test(value.trim())) return null
+  const content = value.trim()
+  const base = { id: 'tool-' + require('node:crypto').randomUUID(), model: payload.model,
+    created: Math.floor(Date.now() / 1000) }
+  if (!payload.stream) return Response.json({ ...base, object: 'chat.completion',
+    choices: [{ index: 0, message: { role: 'assistant', content }, finish_reason: 'stop' }] })
+  const chunk = delta => ({ ...base, object: 'chat.completion.chunk', choices: [delta] })
+  return new Response([chunk({ index: 0, delta: { role: 'assistant', content }, finish_reason: null }),
+    chunk({ index: 0, delta: {}, finish_reason: 'stop' })].map(c => 'data: ' + JSON.stringify(c) + '\n\n').join('') +
+    'data: [DONE]\n\n', { headers: { 'Content-Type': 'text/event-stream' } })
+}
+
 function nativeMessages(payload) {
   if (!Array.isArray(payload.messages)) return null
   const messages = []

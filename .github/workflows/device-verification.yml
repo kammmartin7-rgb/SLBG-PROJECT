@@ -24,8 +24,9 @@ jobs:
           set -euo pipefail
           test -s SLBG-PROJECT.apk
           sdk="$ANDROID_HOME/cmdline-tools/latest/bin"
+          export PATH="$ANDROID_HOME/platform-tools:$PATH"
           sudo chmod a+rw /dev/kvm
-          "$sdk/sdkmanager" 'emulator' "$IMAGE"
+          "$sdk/sdkmanager" 'platform-tools' 'emulator' "$IMAGE"
           echo no | "$sdk/avdmanager" create avd -n verify -k "$IMAGE"
           "$ANDROID_HOME/emulator/emulator" -avd verify -no-window -no-audio -no-snapshot -gpu swiftshader_indirect >/tmp/emulator.log 2>&1 &
           timeout 300 adb wait-for-device

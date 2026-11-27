@@ -12,3 +12,18 @@ test('fast local tool turns preserve the tool schema, conversation and explicit 
     assert.equal(prepare(other), other)
   }
 })
+
+test('an explicitly requested numeric answer uses the matching completed MCP call', async () => {
+  const { directNumericReply } = require('./fast-chat.cjs')
+  const messages = [
+    { role: 'user', content: 'Use the tool. Reply with the returned number.' },
+    { role: 'assistant', tool_calls: [{ id: 'one', function: { name: 'mcp__math__gcd' } }] },
+    { role: 'tool', tool_call_id: 'one', content: JSON.stringify({ content: [{ type: 'text', text: '18' }] }) }
+  ]
+  const payload = { messages, model: 'local' }
+  assert.equal((await directNumericReply(payload).json()).choices[0].message.content, '18')
+  assert.match(await directNumericReply({ ...payload, stream: true }).text(), /data: \[DONE\]/)
+  assert.equal(directNumericReply({ ...payload, messages: messages.slice(0, 2) }), null)
+  assert.equal(directNumericReply({ ...payload, messages: [{ role: 'user', content: 'Explain the result' }, ...messages.slice(1)] }), null)
+  assert.equal(directNumericReply({ ...payload, messages: [...messages.slice(0, 2), { ...messages[2], tool_call_id: 'other' }] }), null)
+})

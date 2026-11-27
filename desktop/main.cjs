@@ -77,7 +77,9 @@ app.whenReady().then(() => {
         if (chat) {
           if (!request.headers.get('content-type')?.startsWith('application/json')) return new Response(null, { status: 415 })
           const payload = await request.json()
-          const { fastChat, hasToolTurn, compatiblePayload } = require('./fast-chat.cjs')
+          const { fastChat, hasToolTurn, compatiblePayload, directNumericReply } = require('./fast-chat.cjs')
+          const direct = directNumericReply(payload)
+          if (direct) return direct
           const toolTurn = hasToolTurn(payload)
           const fast = !toolTurn && await fastChat(payload, request.signal)
           if (fast) return fast

@@ -444,9 +444,15 @@ const GeneralToolCallUI: FC<{ part: MessageToolCallPart }> = ({ part }) => {
   const isError = part.state === 'error'
   const [expanded, setExpanded] = useAutoExpandOnError(isError)
 
+  const result = part.result as { content?: { type: string; text?: string }[]; isError?: boolean } | undefined
+  const output = result?.content
+  const preview = part.state === 'result' && !result?.isError && Array.isArray(output) && output.length === 1 &&
+    output[0].type === 'text' && typeof output[0].text === 'string' && output[0].text.length <= 80
+    ? output[0].text : undefined
+
   return (
     <Stack gap={6} mb="xs">
-      <ToolCallPill part={part} onClick={() => setExpanded((prev) => !prev)} expanded={expanded} />
+      <ToolCallPill part={part} summary={preview} onClick={() => setExpanded((prev) => !prev)} expanded={expanded} />
       <Collapse in={expanded}>
         <Box
           ml={4}
