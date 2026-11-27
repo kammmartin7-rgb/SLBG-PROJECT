@@ -65,7 +65,7 @@ export const yachiyoCodingEnglish: Record<string, string> = {
   签名: 'Signer',
   权限: 'Permissions',
   无: 'None',
-  '禁止安装与 Yachiyo Claw 相同包名的 APK。': 'Installing an APK with the Yachiyo Claw package name is blocked.',
+  '禁止安装与 Hacker Tool 相同包名的 APK。': 'Installing an APK with the Hacker Tool package name is blocked.',
   '签名与已安装应用不匹配，不能覆盖安装。':
     'The signer does not match the installed app, so it cannot be updated in place.',
   确认并打开系统安装器: 'Confirm and open system installer',

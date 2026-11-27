@@ -348,7 +348,7 @@ export function AndroidAboutWorkspace() {
         <div>
           <Text className="yachiyo-eyebrow">OPEN SOURCE · ANDROID</Text>
           <Title id={titleId} order={1}>
-            Yachiyo Claw
+            Hacker Tool
           </Title>
           <Text c="dimmed">AI chat and device agent</Text>
         </div>

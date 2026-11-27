@@ -10,7 +10,7 @@ const copy = {
   en: {
     title: 'Protected settings could not be opened',
     description:
-      'The device security key may have changed. Yachiyo Claw kept the settings locked instead of opening damaged data.',
+      'The device security key may have changed. Hacker Tool kept the settings locked instead of opening damaged data.',
     impact: 'Resetting removes API keys and app settings. Chats and other local data stay on this device.',
     reset: 'Reset settings',
     confirm: 'Delete settings and restart',
@@ -19,7 +19,7 @@ const copy = {
   },
   zh: {
     title: '无法打开受保护的设置',
-    description: '设备安全密钥可能已更改。Yachiyo Claw 已保持设置锁定，不会尝试打开损坏的数据。',
+    description: '设备安全密钥可能已更改。Hacker Tool 已保持设置锁定，不会尝试打开损坏的数据。',
     impact: '重置会删除 API 密钥和应用设置。聊天记录及其他本地数据会保留在此设备上。',
     reset: '重置设置',
     confirm: '删除设置并重新启动',

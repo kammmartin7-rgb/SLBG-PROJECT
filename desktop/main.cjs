@@ -2,6 +2,11 @@ const { app, autoUpdater, BrowserWindow, dialog, net, protocol, session, shell }
 const { join, resolve, extname, sep } = require('node:path')
 const { pathToFileURL } = require('node:url')
 
+// Keep existing conversations and settings when the display name changes.
+if (!app.commandLine.hasSwitch('user-data-dir')) {
+  app.setPath('userData', join(app.getPath('appData'), 'Yachiyo Claw'))
+}
+
 const scheme = 'yachiyo'
 const origin = 'yachiyo://app'
 protocol.registerSchemesAsPrivileged([{
@@ -32,7 +37,7 @@ async function checkDesktopUpdate() {
     const update = await response.json()
     if (typeof update.url !== 'string') return
     const choice = await dialog.showMessageBox({
-      type: 'info', message: 'A Yachiyo Claw update is available.',
+      type: 'info', message: 'A Hacker Tool update is available.',
       buttons: ['Open download page', 'Later'], cancelId: 1, defaultId: 1
     })
     if (choice.response === 0) await shell.openExternal(releasePage)
@@ -43,7 +48,7 @@ async function checkDesktopUpdate() {
 
 function openWindow() {
   const win = new BrowserWindow({
-    title: 'Yachiyo Claw',
+    title: 'Hacker Tool',
     width: 1150, height: 800, minWidth: 520, minHeight: 500,
     webPreferences: { preload: join(__dirname, 'preload.cjs'), sandbox: true, contextIsolation: true, nodeIntegration: false, webviewTag: false }
   })

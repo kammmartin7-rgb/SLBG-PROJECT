@@ -378,3 +378,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
+
+  verify-devices:
+    needs: android
+    permissions:
+      contents: read
+      actions: read
+    uses: ./.github/workflows/device-verification.yml

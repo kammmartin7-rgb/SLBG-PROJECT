@@ -23,6 +23,6 @@ if [ -d "$PWD/.cache/math-wheels" ]; then
   done
   set -- "--extra-resource=$math_root/math-libraries" "$@"
 fi
-"$packager" "$stage" 'Yachiyo Claw' --platform=darwin --arch="${YACHIYO_ARCH:-$(node -p 'process.arch')}" \
+"$packager" "$stage" 'Hacker Tool' --platform=darwin --arch="${YACHIYO_ARCH:-$(node -p 'process.arch')}" \
   '--asar.unpack={math.cjs,discrete.py}' --electron-version=45.4.1 --app-bundle-id=io.github.yachiyoclaw.desktop \
   --out="${YACHIYO_OUTPUT:-$PWD/dist/desktop}" --overwrite "$@"
