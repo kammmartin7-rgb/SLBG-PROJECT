@@ -1,3 +1,4 @@
+import { version as appVersion } from '../../../package.json'
 import * as defaults from '@shared/defaults'
 import type { Config, Settings, ShortcutSetting } from '@shared/types'
 import localforage from 'localforage'
@@ -31,7 +32,7 @@ export default class WebPlatform extends IndexedDBStorage implements Platform {
   }
 
   public async getVersion(): Promise<string> {
-    return 'web'
+    return appVersion
   }
   public async getPlatform(): Promise<string> {
     return 'web'

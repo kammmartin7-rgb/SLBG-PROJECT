@@ -4,6 +4,7 @@ import { ANDROID_TOOL_STAGE_INITIAL } from '@shared/agent/android-tool-stages'
 import type { KnowledgeBase, Message } from '@shared/types'
 import type { SkillInfo } from '@shared/types/skills'
 import { createCameraCaptureTool } from '@/mobile/camera-tool'
+import { discoveryTools } from '@/packages/mcp/discovery'
 import { mcpController } from '@/packages/mcp/controller'
 import { createAndroidDeviceToolSet } from '@/packages/model-calls/toolsets/android-device'
 import fileToolSet from '@/packages/model-calls/toolsets/file'
@@ -153,7 +154,8 @@ function sessionAttachmentRagIds(messages: readonly Message[]): number[] {
 }
 
 const mcpFactory: FeatureToolsetFactory = async (context) => {
-  const tools = { ...mcpController.getAvailableTools(options(context, 'mcp')?.agentSessionId) }
+  const sessionId = options(context, 'mcp')?.agentSessionId
+  const tools = { ...mcpController.getAvailableTools(sessionId), ...(sessionId ? discoveryTools(sessionId) : {}) }
   return { instructions: '', tools }
 }
 

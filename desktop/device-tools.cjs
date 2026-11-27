@@ -39,6 +39,10 @@ exports.installDeviceTools = function(win) {
     if (event.sender !== win.webContents || event.senderFrame !== win.webContents.mainFrame ||
         !event.senderFrame.url.startsWith('yachiyo://app/')) throw Error('Invalid caller')
     if (typeof id !== 'string' || !id.length || id.length > 180) throw Error('Missing conversation')
+    if (action === 'run_workspace_code') {
+      return require('./code-workspace.cjs').runCode(require('electron').app.getPath('userData'), id, args, confirm)
+    }
+    if (action === 'metis_latest_block') return require('./metis.cjs').metisBlock()
     if (action.startsWith('browser_')) {
       if (action === 'browser_navigate') {
         const url = new URL(args.url)

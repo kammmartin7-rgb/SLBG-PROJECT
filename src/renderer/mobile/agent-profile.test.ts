@@ -28,3 +28,27 @@ describe('Android Agent profiles', () => {
     expect(prompt).toContain('<memory>')
   })
 })
+
+it('imports a browser profile copy twice without changing the source or replacing desktop agents', async () => {
+  const { mergeImportedAgentProfiles } = await import('./agent-profile')
+  const store = new Map<string, string>()
+  vi.stubGlobal('localStorage', {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => store.set(key, value),
+  })
+  const source = { activeProfileId: 'browser', profiles: [{ id: 'browser', name: 'Browser agent', soul: 'Browser instructions' }] }
+  const builtin = getAgentProfileState().profiles[0]
+  source.profiles.push({ id: builtin.id, name: 'Customized built-in', soul: 'Keep the imported customization' })
+  const copy = JSON.parse(JSON.stringify(source))
+  expect(mergeImportedAgentProfiles(copy).activeProfileId).toBe('browser')
+  expect(mergeImportedAgentProfiles(copy).profiles.find(p => p.id === builtin.id)?.name).toBe('Customized built-in')
+  saveAgentProfileState({ activeProfileId: 'desktop', profiles: [{ id: 'desktop', name: 'Desktop agent', soul: 'Keep me' }] })
+  saveAgentProfileState(mergeImportedAgentProfiles(copy))
+  const first = getAgentProfileState()
+  saveAgentProfileState(mergeImportedAgentProfiles(copy))
+  expect(getAgentProfileState()).toEqual(first)
+  expect(first.activeProfileId).toBe('desktop')
+  expect(first.profiles.find(p => p.id === builtin.id)?.name).toBe(builtin.name)
+  expect(first.profiles.map(p => p.id)).toEqual(expect.arrayContaining(['desktop', 'browser']))
+  expect(copy).toEqual(source)
+})

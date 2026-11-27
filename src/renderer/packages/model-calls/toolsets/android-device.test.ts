@@ -1,3 +1,4 @@
+import type { ToolSet } from 'ai'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getInfoMock = vi.hoisted(() => vi.fn())
@@ -6,6 +7,11 @@ const accessibilityActionMock = vi.hoisted(() => vi.fn())
 const executeAccessibilityActionMock = vi.hoisted(() => vi.fn())
 const executeAppLaunchMock = vi.hoisted(() => vi.fn())
 const executeCompanionActionMock = vi.hoisted(() => vi.fn())
+
+vi.mock('@/platform', () => ({ default: { getStoreValue: async () => [{
+  id: 'fixture', version: 1, appPackages: ['example.fixture'], aliases: ['fixture'], supportedBackends: ['accessibility'],
+  steps: [{ kind: 'observeSemantic' }], risk: 'read', maxActions: 1, confirmedAt: 1,
+}] } }))
 
 vi.mock('@capacitor/device', () => ({
   Device: {
@@ -29,7 +35,9 @@ vi.mock('@/platform/native/yachiyo_device_access', () => ({
   compactSemanticObservation: (output: string) => output,
   yachiyoDeviceAccessNative: {
     accessibilityAction: accessibilityActionMock,
-    listLaunchableApps: vi.fn(),
+    listLaunchableApps: async () => ({ apps: [], count: 0 }),
+    getLauncherContext: async () => ({ layout: 'fixture' }),
+    getPermissionStatus: async () => ({ granted: true }),
   },
 }))
 
@@ -90,6 +98,32 @@ describe('Android device tools', () => {
       expect(operationListener).not.toHaveBeenCalled()
     } finally {
       removeListener()
+    }
+  })
+
+  it('dispatches device reads, navigation, coordinates and text to fixture backends', async () => {
+    vi.stubGlobal('navigator', { onLine: true, storage: { estimate: async () => ({ usage: 1, quota: 2 }) } })
+    const tools: ToolSet = createAndroidDeviceToolSet('fixture').tools
+    const invoke = (name: string, input = {}) => tools[name].execute!(input, { toolCallId: name, messages: [] })
+    try {
+      expect(await invoke('android_permission_status')).toEqual({ granted: true })
+      expect(await invoke('android_app_list')).toMatchObject({ count: 0 })
+      expect(await invoke('android_launcher_context')).toEqual({ layout: 'fixture' })
+      expect(await invoke('android_storage_status')).toMatchObject({ usageBytes: 1 })
+      expect(await invoke('android_network_status')).toMatchObject({ online: true })
+      expect(await invoke('android_run_recipe', { recipe_id: 'fixture' })).toHaveProperty('exitCode', 0)
+      const actions = [
+        ['android_find_node', { text: 'fixture' }], ['android_tap', { x: 1, y: 1 }],
+        ['android_swipe', { start_x: 1, start_y: 1, end_x: 2, end_y: 2 }],
+        ['android_type_text', { text: 'fixture' }], ['android_keyevent', { key: 'BACK' }],
+      ] as const
+      for (const [name, input] of actions) {
+        executeAccessibilityActionMock.mockClear()
+        await invoke(name, input)
+        expect(executeAccessibilityActionMock, name).toHaveBeenCalledOnce()
+      }
+    } finally {
+      vi.unstubAllGlobals()
     }
   })
 

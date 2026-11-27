@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { TOOL_IDS } from '@shared/agent'
 import {
+  INTERNAL_BROKER_TOOL_IDS,
   registerBrokerToolDescriptor,
   registerBuiltInBrokerTools,
   registerCompanionBrokerTool,
@@ -56,4 +57,19 @@ describe('Broker tool descriptor registry', () => {
       }),
     ).toMatchObject({ supportedBackends: ['companion'] })
   })
+})
+
+
+it.each(Object.values(TOOL_IDS))('resolves the built-in authorization descriptor for %s', toolId => {
+  const scheduled = toolId.startsWith('agent.schedule.')
+  expect(requireBrokerToolAuthorization({
+    toolId, featureId: scheduled ? 'tasks' : 'android-device', backend: scheduled ? 'standard' : 'adb',
+  }).toolId).toBe(toolId)
+})
+
+it.each(INTERNAL_BROKER_TOOL_IDS)('resolves the internal authorization descriptor for %s', toolId => {
+  const featureId = toolId.startsWith('skill.') ? 'skills' : toolId.startsWith('plugin.') ? 'plugins' : 'sandbox'
+  expect(requireBrokerToolAuthorization({
+    toolId, featureId, backend: toolId === 'plugin.network.fetch' ? 'standard' : 'sandbox',
+  }).toolId).toBe(toolId)
 })

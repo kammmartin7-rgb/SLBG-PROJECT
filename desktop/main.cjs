@@ -1,4 +1,4 @@
-const { app, BrowserWindow, net, protocol, session } = require('electron')
+const { app, autoUpdater, BrowserWindow, dialog, net, protocol, session, shell } = require('electron')
 const { join, resolve, extname, sep } = require('node:path')
 const { pathToFileURL } = require('node:url')
 
@@ -8,6 +8,38 @@ protocol.registerSchemesAsPrivileged([{
   scheme,
   privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
 }])
+
+const releasePage = 'https://github.com/kammmartin7-rgb/Yachiyo-claw-stronger/releases/latest'
+
+async function checkDesktopUpdate() {
+  if (!app.isPackaged || process.platform !== 'darwin') return
+  const feed = 'https://update.electronjs.org/kammmartin7-rgb/Yachiyo-claw-stronger/darwin-' +
+    process.arch + '/' + encodeURIComponent(app.getVersion())
+  try {
+    // Developer ID builds can install verified updates when the user quits normally.
+    const { promisify } = require('node:util')
+    const inspect = promisify(require('node:child_process').execFile)
+    const { stderr } = await inspect('/usr/bin/codesign', ['-dv', '--verbose=4', process.execPath])
+    if (/^Authority=Developer ID Application:/m.test(stderr)) {
+      autoUpdater.on('error', error => console.warn('Desktop update failed:', error.message))
+      autoUpdater.setFeedURL({ url: feed })
+      autoUpdater.checkForUpdates()
+      return
+    }
+    // Locally signed builds can notify the user about a compatible Mac release.
+    const response = await net.fetch(feed, { credentials: 'omit', signal: AbortSignal.timeout(15000) })
+    if (response.status !== 200) return
+    const update = await response.json()
+    if (typeof update.url !== 'string') return
+    const choice = await dialog.showMessageBox({
+      type: 'info', message: 'A Yachiyo Claw update is available.',
+      buttons: ['Open download page', 'Later'], cancelId: 1, defaultId: 1
+    })
+    if (choice.response === 0) await shell.openExternal(releasePage)
+  } catch (error) {
+    console.warn('Desktop update check unavailable:', error.message)
+  }
+}
 
 function openWindow() {
   const win = new BrowserWindow({
@@ -40,12 +72,11 @@ app.whenReady().then(() => {
         if (chat) {
           if (!request.headers.get('content-type')?.startsWith('application/json')) return new Response(null, { status: 415 })
           const payload = await request.json()
-          // Native fast chat only handles text. Keep structured tool turns on the compatible endpoint.
-          const usesTools = payload.tools?.length || payload.functions?.length ||
-            payload.messages?.some(message => message.role === 'tool' || message.tool_calls?.length)
-          const fast = !usesTools && await require('./fast-chat.cjs').fastChat(payload, request.signal)
+          const { fastChat, hasToolTurn, compatiblePayload } = require('./fast-chat.cjs')
+          const toolTurn = hasToolTurn(payload)
+          const fast = !toolTurn && await fastChat(payload, request.signal)
           if (fast) return fast
-          body = JSON.stringify(payload)
+          body = JSON.stringify(compatiblePayload(payload, toolTurn))
         }
         const upstream = await fetch('http://127.0.0.1:11434' + path, {
           method: request.method, headers: { 'Content-Type': 'application/json' },
@@ -69,6 +100,7 @@ app.whenReady().then(() => {
   })
   session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) => callback(false))
   openWindow()
+  void checkDesktopUpdate()
   app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) openWindow() })
 })
 

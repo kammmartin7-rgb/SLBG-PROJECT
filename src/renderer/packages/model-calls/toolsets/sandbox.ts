@@ -298,6 +298,7 @@ export default {
     sandbox_find,
     sandbox_start_background,
     sandbox_job_status,
+    poll_workflow_status: sandbox_job_status,
     sandbox_job_output,
     sandbox_stop_job,
   },

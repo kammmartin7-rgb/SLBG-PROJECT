@@ -432,6 +432,22 @@ export const MCP_ENTRIES_OFFICIAL: MCPRegistryEntry[] = [
 
 export const MCP_ENTRIES_COMMUNITY: MCPRegistryEntry[] = [
   {
+    name: 'n8n-mcp', title: 'n8n', icon: '', homepage: 'https://github.com/czlonkowski/n8n-mcp',
+    description: 'Run n8n MCP locally. Configure your instance to manage workflows.',
+    configuration: { command: 'npx', args: ['-y', 'n8n-mcp'], env: { MCP_MODE: 'stdio', DISABLE_CONSOLE_OUTPUT: 'true' } }
+  },
+  {
+    name: 'windmill', title: 'Windmill', icon: '', homepage: 'https://www.windmill.dev/docs/core_concepts/mcp',
+    description: 'Connect through a local stdio bridge. Set your Windmill workspace URL and sign in.',
+    configuration: { command: 'npx', args: ['-y', 'mcp-remote', 'https://app.windmill.dev/api/mcp'] }
+  },
+  {
+    name: 'kestra', title: 'Kestra', icon: '', homepage: 'https://github.com/kestra-io/mcp-server-python',
+    description: 'Run the Kestra MCP server with Docker. Set the URL and tenant for your instance.',
+    configuration: { command: 'docker', args: ['run', '-i', '--rm', '-e', 'KESTRA_BASE_URL', '-e', 'KESTRA_TENANT_ID',
+      'ghcr.io/kestra-io/mcp-server-python:latest'], env: { KESTRA_BASE_URL: 'http://host.docker.internal:8080/api/v1', KESTRA_TENANT_ID: 'main' } }
+  },
+  {
     name: 'talk-to-figma',
     title: 'Talk to Figma',
     description:

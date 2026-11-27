@@ -88,6 +88,11 @@ export async function resolvePluginPackageSource(
 ): Promise<ResolvedPluginPackage> {
   const url = requirePublicHttps(input.trim())
   const parts = url.pathname.split('/').filter(Boolean)
+  // GitHub's file viewer returns HTML. Download the selected package bytes instead.
+  if (url.hostname === 'github.com' && parts[2] === 'blob' && parts.length >= 5 && url.pathname.endsWith('.zip')) {
+    const raw = requirePublicHttps(`https://raw.githubusercontent.com/${parts.slice(0, 2).join('/')}/${parts.slice(3).join('/')}`)
+    return { url: raw.href, size: await probePackageSize(raw.href, fetchImpl) }
+  }
   if (
     url.hostname.toLowerCase() === 'github.com' &&
     parts.length >= 2 &&
@@ -103,15 +108,26 @@ export async function resolvePluginPackageSource(
       },
       fetchImpl
     )
-    if (!metadata.ok) throw new Error(`github_release_http_${metadata.status}`)
-    const payload = (await metadata.json()) as {
+    if (!metadata.ok && metadata.status !== 404) throw new Error(`github_release_http_${metadata.status}`)
+    const payload = (metadata.ok ? await metadata.json() : {}) as {
       assets?: Array<{ name?: unknown; browser_download_url?: unknown; size?: unknown; digest?: unknown }>
     }
     const assets = Array.isArray(payload.assets) ? payload.assets : []
     const asset =
       assets.find((item) => item.name === 'yachiyo-plugin.zip') ??
-      assets.find((item) => typeof item.name === 'string' && item.name.endsWith('.zip'))
-    if (!asset || typeof asset.browser_download_url !== 'string') throw new Error('github_release_plugin_asset_missing')
+      assets.find((item) => typeof item.name === 'string' && item.name.endsWith('.zip') &&
+        typeof item.size === 'number' && item.size <= MAX_PACKAGE_BYTES && !/[-_.](source|src)\.zip$/i.test(item.name))
+    if (!asset) {
+      const catalogUrl = `https://raw.githubusercontent.com/${owner}/${repository}/HEAD/plugin-marketplace/index.json`
+      const entries = await loadPluginMarketplace(catalogUrl, fetchImpl).catch((error: unknown) => {
+        if (error instanceof Error && error.message === 'plugin_marketplace_http_404') return []
+        throw error
+      })
+      if (entries.length === 1) return marketplacePackage(entries[0])
+      if (entries.length > 1) throw new Error('Choose a plugin package URL from this repository’s marketplace catalog.')
+      throw new Error('github_release_plugin_asset_missing')
+    }
+    if (typeof asset.browser_download_url !== 'string') throw new Error('github_release_plugin_asset_missing')
     const packageUrl = requirePublicHttps(asset.browser_download_url).toString()
     const digest =
       typeof asset.digest === 'string' && /^sha256:[a-f0-9]{64}$/i.test(asset.digest)
